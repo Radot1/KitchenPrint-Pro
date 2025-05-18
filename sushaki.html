@@ -48,21 +48,50 @@
             overflow-y: auto;
         }
 
-        .numpad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-        }
+        /* Numpad Styling - Enhanced for Touch & Width */
+		.numpad {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+			gap: 0.75rem;
+			margin-top: 1rem;
+			width: 100%; /* This should make the grid container use full available width */
+			/* Let's ensure its parent doesn't overly constrain it with padding for this specific element */
+		}
 
-        .numpad button {
-            height: 3.5rem;
-            border: none;
-            background: white;
-            border-radius: 8px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+		.numpad button {
+			min-height: 5rem; /* Or even more if they look too narrow, e.g., 5.5rem or 6rem */
+			/* Width is driven by '1fr' in grid-template-columns */
+			padding: 0.5rem; /* Adjust padding if text gets cramped with larger font */
+			border: 1px solid #ddd;
+			background: white;
+			border-radius: 8px;
+			font-size: 2.2rem; /* Try increasing font size even more */
+			font-weight: 500;
+			color: var(--text);
+			cursor: pointer;
+			transition: all 0.15s ease-out;
+			box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			line-height: 1;
+		}
+
+		.numpad button:active {
+			transform: scale(0.96);
+			background-color: #e9e9e9;
+			box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+		}
+
+		.numpad button.numpad-action-btn {
+			background-color: var(--secondary);
+			color: white;
+			font-size: 1.8rem; /* May need adjustment for 'C' or '←' symbols */
+		}
+
+		.numpad button.numpad-action-btn:active {
+			background-color: #6a9a80;
+		}
 
         /* Right Panel */
         .menu-panel {
@@ -371,6 +400,12 @@
 	.primary-btn:active {
 		background: #c0392b !important; /* Darker shade of your primary color */
 	}
+	
+	#existingItems .item-row.editing {
+		background-color: var(--highlight); /* Use your highlight color */
+		border-left: 3px solid var(--primary); /* Add a distinct left border */
+		/* font-weight: 500; /* Optional: make text slightly bolder */
+	}
     </style>
 </head>
 <body>
@@ -382,16 +417,17 @@
             <div id="order-total" class="text-lg text-bold">Total: $0.00</div>
         </div>
         
-        <div class="numpad">
-            <button onclick="handleNumpad(1)">1</button>
-            <button onclick="handleNumpad(2)">2</button>
-            <button onclick="handleNumpad(3)">3</button>
-            <button onclick="handleNumpad(4)">4</button>
-            <button onclick="handleNumpad(5)">5</button>
-            <button onclick="handleNumpad(6)">6</button>
-            <button onclick="handleNumpad(7)">7</button>
-            <button onclick="handleNumpad(8)">8</button>
-            <button onclick="handleNumpad(9)">9</button>
+        <div class="numpad"> <button onclick="handleNumpad(1)">1</button>
+			   <button onclick="handleNumpad(2)">2</button>
+			   <button onclick="handleNumpad(3)">3</button>
+			   <button onclick="handleNumpad(4)">4</button>
+			   <button onclick="handleNumpad(5)">5</button>
+			   <button onclick="handleNumpad(6)">6</button>
+			   <button onclick="handleNumpad(7)">7</button>
+			   <button onclick="handleNumpad(8)">8</button>
+			   <button onclick="handleNumpad(9)">9</button>
+			   <button class="numpad-action-btn" onclick="handleNumpadClear()">C</button>
+			   <button onclick="handleNumpad(0)">0</button> <button class="numpad-action-btn" onclick="handleNumpadBackspace()">←</button>
         </div>
 		
 		<div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
@@ -420,15 +456,28 @@
 
     <script>
         // Initialize with localStorage
-        let menu = {};
+		let menu = {};
 		let selectedCategory = null;
 		let editingItem = null;
 		let currentManagementTab = 'items';
-        let currentOrder = JSON.parse(localStorage.getItem('currentOrder')) || [];
-        let selectedItemId = null;
-        let orderNumber = parseInt(localStorage.getItem('orderNumber')) || 1;
+		let currentOrder = JSON.parse(localStorage.getItem('currentOrder')) || [];
+		let selectedItemId = null;
+
 		let numpadInput = "";
 		let universalOrderComment = localStorage.getItem('universalOrderComment') || "";
+
+		const ORDER_NUMBER_KEY = 'dailyOrderNumber'; // Changed key to avoid conflict if old 'orderNumber' exists
+		const LAST_ORDER_DATE_KEY = 'lastOrderDate';
+		let orderNumber; // This will be initialized by our new function
+		
+		
+		function getLocalDateStr() {
+			const now = new Date();
+			const year = now.getFullYear();
+			const month = (now.getMonth() + 1).toString().padStart(2, '0'); // JavaScript months are 0-indexed
+			const day = now.getDate().toString().padStart(2, '0');
+			return `${year}-${month}-${day}`;
+		}
 		
 		async function loadMenu() {
 			try {
@@ -456,6 +505,24 @@
 				showToast('Failed to save menu');
 				console.error(error);
 			}
+		}
+		
+		function initializeOrderNumberAndDate() {
+			const todayStr = getLocalDateStr();
+			const storedLastOrderDate = localStorage.getItem(LAST_ORDER_DATE_KEY);
+			const storedOrderNumber = parseInt(localStorage.getItem(ORDER_NUMBER_KEY));
+
+			if (storedLastOrderDate === todayStr && !isNaN(storedOrderNumber) && storedOrderNumber > 0) {
+				// It's the same day, and we have a valid stored number
+				orderNumber = storedOrderNumber;
+			} else {
+				// It's a new day, or no valid number was stored for today
+				orderNumber = 1;
+			}
+			// Always update the last order date to today and store the (potentially new) order number
+			localStorage.setItem(LAST_ORDER_DATE_KEY, todayStr);
+			localStorage.setItem(ORDER_NUMBER_KEY, orderNumber);
+			// The order number will be displayed by the init() function later
 		}
 
         // Initialize UI
@@ -499,6 +566,53 @@
 		function generateItemId() {
 			const allItems = [].concat(...Object.values(menu));
 			return allItems.length > 0 ? Math.max(...allItems.map(i => i.id)) + 1 : 1;
+		}
+		
+		function handleNumpadClear() {
+			if (!selectedItemId) {
+				showToast('Select an item first');
+				return;
+			}
+			const item = currentOrder.find(i => i.id === selectedItemId);
+			if (item) {
+				numpadInput = ""; // Clear the internal numpad buffer
+				// Decide what quantity to set on clear. Often, it's reset to 1.
+				// Or, if you want to clear the input but not necessarily change quantity yet,
+				// this clear might just affect the next numpadInput.
+				// For now, let's make it reset the current input and set quantity to 1
+				// if the input becomes empty, or to the valid part of input.
+				// A simple clear could just reset numpadInput, and the next digit starts fresh.
+				// Let's make 'Clear' reset the quantity to 1 for the selected item.
+				item.quantity = 1;
+				numpadInput = ""; // Reset for next input
+				showToast('Quantity cleared, set to 1.');
+				updateOrderDisplay();
+			}
+		}
+
+		function handleNumpadBackspace() {
+			if (!selectedItemId) {
+				showToast('Select an item first');
+				return;
+			}
+			const item = currentOrder.find(i => i.id === selectedItemId);
+			if (item) {
+				if (numpadInput.length > 0) {
+					numpadInput = numpadInput.slice(0, -1); // Remove the last character
+				}
+
+				// After removing a digit:
+				if (numpadInput === "") {
+					// If buffer is now empty, set quantity to 1
+					item.quantity = 1;
+				} else {
+					// If buffer still has content, update quantity to its numeric value
+					let newQuantity = Number(numpadInput);
+					// Ensure quantity is positive, if "0" remains, treat as 1 for quantity
+					item.quantity = (newQuantity > 0) ? newQuantity : 1;
+				}
+				updateOrderDisplay();
+			}
 		}
 
         function showCategory(category) {
@@ -623,16 +737,17 @@
     
     function selectItem(itemId) {
 		if (selectedItemId === itemId) {
-			// If clicking the already selected item, deselect it (optional behavior, or just reset input)
-			// For simplicity here, we'll assume clicking an item always means you want to set its quantity.
 			selectedItemId = itemId; // Keep it selected
 			numpadInput = "";    // Reset numpad input for the selected item
 		} else {
-			// Selecting a new item
 			selectedItemId = itemId;
 			numpadInput = "";    // Reset numpad input for the newly selected item
 		}
-		updateOrderDisplay(); // This will re-render and clear any visual numpad input if you had one
+		// When an item is selected, its current quantity should be loaded into numpadInput
+		// so that appending digits works as expected, or pressing a new digit replaces it.
+		// For the "type 21 or 68" behavior, the first digit pressed should *start* the numpadInput.
+		// So, numpadInput = "" is correct here.
+		updateOrderDisplay();
 	}
 
         function removeItem(itemId) {
@@ -640,68 +755,88 @@
             updateOrderDisplay();
         }
 
-        function handleNumpad(digit) { // Changed 'number' to 'digit' for clarity
-		if (!selectedItemId) {
-			showToast('Select an item first');
-			numpadInput = ""; // Clear any stray input if no item is selected
-			return;
+        function handleNumpad(digit) {
+			if (!selectedItemId) {
+				showToast('Select an item first');
+				numpadInput = ""; // Clear buffer if no item is selected
+				return;
+			}
+			const item = currentOrder.find(i => i.id === selectedItemId);
+			if (!item) {
+				showToast('Error: Selected item not found.');
+				numpadInput = ""; // Clear buffer
+				return;
+			}
+
+			// If numpadInput is "0" and the new digit is not "0", replace "0"
+			if (numpadInput === "0" && String(digit) !== "0") {
+				numpadInput = String(digit);
+			} else {
+				numpadInput += String(digit); // Append the pressed digit
+			}
+
+			let newQuantity = Number(numpadInput);
+
+			// Ensure quantity is positive; if input becomes invalid or zero, default to 1.
+			if (isNaN(newQuantity) || newQuantity <= 0) {
+				item.quantity = 1;
+				// If the input was problematic, we might want to reset numpadInput
+				// to reflect the quantity of 1, to avoid "03" becoming quantity 1
+				// but numpadInput still being "03".
+				// For simplicity now, we'll let numpadInput hold what was typed,
+				// and item.quantity holds the sanitized version.
+				// However, for better UX, if newQuantity became 1 due to bad input,
+				// numpadInput perhaps should also become "1".
+				// Let's ensure that if a quantity is 0 or less it becomes 1
+				if (Number(numpadInput) <=0) numpadInput = "1"; // Keep numpadInput reflecting the forced 1
+
+			} else {
+				item.quantity = newQuantity;
+			}
+
+			updateOrderDisplay();
 		}
-
-		const item = currentOrder.find(i => i.id === selectedItemId);
-		if (!item) {
-			// This case should ideally not be reached if selectedItemId is valid
-			showToast('Error: Selected item not found.');
-			numpadInput = "";
-			return;
-		}
-
-		numpadInput += String(digit); // Append the pressed digit to our input string
-    
-		let newQuantity = Number(numpadInput);
-
-		// Ensure quantity is at least 1 (or handle 0 if your logic allows)
-		// If numpadInput becomes something invalid like an empty string after some logic (not here), Number("") is 0.
-		if (newQuantity <= 0 && numpadInput !== "") { // Allow typing numbers like "01" which is 1
-		newQuantity = Number(numpadInput.replace(/^0+/, '')) || 0; // Remove leading zeros unless it's just "0"
-			if (newQuantity === 0 && numpadInput !== "0") { // e.g. if numpadInput became empty or invalid
-				// Decide behavior: revert, set to 1, or allow 0 if meaningful
-				// For now, if input becomes invalid non-positive, let's not update or set to previous.
-				// However, with simple concatenation, numpadInput will be like "3", "32", etc.
-				// So newQuantity should be positive.
+		
+		function handleNumpadClear() {
+			if (!selectedItemId) {
+				showToast('Select an item first');
+				return;
+			}
+			const item = currentOrder.find(i => i.id === selectedItemId);
+			if (item) {
+				numpadInput = "";   // Make the numpad input buffer truly empty
+				item.quantity = 1;    // Set quantity to 1
+				showToast('Input cleared. Quantity set to 1.');
+				updateOrderDisplay();
 			}
 		}
 
-
-		if (newQuantity > 0) {
-			item.quantity = newQuantity;
-		} else if (numpadInput === "0") { // If user explicitly types "0" (if you add a 0 button)
-			item.quantity = 0; 
-		} else {
-			// If numpadInput is empty or leads to invalid number, do nothing or reset to 1
-			// For this implementation, if newQuantity is not >0 (e.g. numpadInput was cleared by other means)
-			// we don't update. It will typically be >0.
-		}
-    
-		// A simpler rule assuming numpad 1-9 will always build positive numbers:
-		// item.quantity = newQuantity > 0 ? newQuantity : item.quantity; // only update if valid positive
-
-		item.quantity = Number(numpadInput); // This directly applies the built-up number. Number("05") is 5. Number("32") is 32.
-
-		updateOrderDisplay();
-	}
-
         function newOrder() {
 			currentOrder = [];
-			orderNumber++;
-			localStorage.setItem('orderNumber', orderNumber);
+
+			const todayStr = getLocalDateStr();
+			const storedLastOrderDate = localStorage.getItem(LAST_ORDER_DATE_KEY);
+
+			// Check if the day has changed since the last order or page load
+			if (storedLastOrderDate !== todayStr) {
+				orderNumber = 1; // Reset to 1 for the new day
+				localStorage.setItem(LAST_ORDER_DATE_KEY, todayStr); // Update the date in storage
+			} else {
+				// It's the same day, so just increment the current orderNumber.
+				// The orderNumber variable holds the last used number for the current day.
+				orderNumber++;
+			}
+
+			localStorage.setItem(ORDER_NUMBER_KEY, orderNumber); // Save the new/incremented number for the current day
 			document.getElementById('order-number').textContent = orderNumber;
+
+			// Reset other order-specific states
 			numpadInput = "";
 			selectedItemId = null;
-
-			universalOrderComment = ""; // <-- ADD THIS
-			localStorage.removeItem('universalOrderComment'); // <-- ADD THIS
-			const universalCommentInputEl = document.getElementById('universalOrderCommentInput'); // <-- ADD THIS
-			if (universalCommentInputEl) universalCommentInputEl.value = ""; // <-- ADD THIS
+			universalOrderComment = "";
+			localStorage.removeItem('universalOrderComment');
+			const universalCommentInputEl = document.getElementById('universalOrderCommentInput');
+			if (universalCommentInputEl) universalCommentInputEl.value = "";
 
 			updateOrderDisplay();
 			showToast('New order started');
@@ -899,6 +1034,7 @@
 	}
 
     // Initialize the app
+	initializeOrderNumberAndDate();
     loadMenu();
     
     </script>
