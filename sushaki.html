@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Order System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Remove mobile tap highlight */
+        }
+
+        :root {
+            --primary: #E07A5F;
+            --secondary: #81B29A;
+            --background: #F5F5F5;
+            --text: #2D2D2D;
+            --highlight: #FFF8F6;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background: var(--background);
+            overflow: hidden;
+        }
+
+        /* Left Panel */
+        .order-panel {
+            width: 33.33%;
+            padding: 1.5rem;
+            border-right: 2px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .order-details {
+            flex: 1;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow-y: auto;
+        }
+
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .numpad button {
+            height: 3.5rem;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* Right Panel */
+        .menu-panel {
+            width: 66.67%;
+			padding: 1.5rem;
+			overflow-y: auto;
+			height: 100vh; /* Add this to ensure proper height */
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .category-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 24px;
+            background: #eee;
+            cursor: pointer;
+            font-size: 1rem;
+            white-space: nowrap;
+            min-width: fit-content;
+        }
+
+        .category-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .product-card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 6rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-card:active {
+            transform: scale(0.98);
+            background: var(--highlight);
+        }
+
+        /* Order Items */
+        .order-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .order-item.new {
+            background: var(--highlight);
+            border-left: 3px solid var(--primary);
+            padding-left: 0.5rem;
+            margin-left: -0.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-buttons button {
+            flex: 1;
+            padding: 1.25rem;
+            font-size: 1.1rem;
+        }
+
+        .primary-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .secondary-btn {
+            background: #ddd;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        /* Utility */
+        .price {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .text-lg {
+            font-size: 1.2rem;
+        }
+
+        .text-bold {
+            font-weight: 700;
+        }
+        
+         /* Management Modal Styles */
+    .management-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        padding: 2rem;
+    }
+
+    .management-content {
+        background: white;
+        max-width: 600px;
+        margin: 2rem auto;
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .management-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .management-tab {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: #eee;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .management-tab.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .management-form {
+        display: grid;
+        gap: 1rem;
+    }
+	
+	.management-form input, 
+	.management-form select {
+		padding: 1rem !important;
+		font-size: 1.1rem !important;
+		min-height: 50px;
+	}
+
+    .form-group {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    input, select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .item-list {
+        margin-top: 1rem;
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+    }
+	
+	#itemsManagement .item-list {
+		max-height: 300px; /* You can change 300px to a different value if needed */
+		overflow-y: auto;
+		padding-right: 10px; /* Optional: for better spacing with the scrollbar */
+	}
+	
+	#categoriesManagement .item-list {
+		max-height: 300px; /* You can change 300px to a different value if needed */
+		overflow-y: auto;
+		padding-right: 10px; /* Optional: for better spacing with the scrollbar */
+	}
+
+    .item-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .settings-gear {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        background: var(--primary);
+        color: white;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .selected-item {
+            background: var(--highlight) !important;
+            border: 2px solid var(--primary) !important;
+        }
+
+    .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            animation: slideDown 0.3s ease-out;
+            display: none;
+        }
+
+    @keyframes slideDown {
+            from { top: -50px; }
+            to { top: 20px; }
+        }
+        
+        /* Printer-friendly styles */
+    @media print {
+        body > :not(.print-section) {
+            display: none !important;
+        }
+        .print-section {
+            padding: 20px;
+            font-size: 14pt;
+        }
+    }
+
+    /* Kitchen ticket styling */
+    .kitchen-ticket {
+        display: none;
+        background: white;
+        padding: 20px;
+        max-width: 400px;
+        margin: 0 auto;
+        border: 3px dashed #ccc;
+    }
+	
+	/* Management Modal Button Styles */
+		.management-content .primary-btn {
+			padding: 1rem !important;
+			font-size: 1.1rem !important;
+			margin-top: 1rem;
+			height: auto;
+			min-height: 50px; /* Minimum touch target size */
+		}
+
+	/* Form submit buttons */
+		.management-form button {
+			width: 100%;
+			padding: 1rem !important;
+			font-size: 1.1rem !important;
+			margin: 0.5rem 0;
+		}
+
+	/* Edit/Delete buttons in lists */
+		.item-row button {
+			padding: 0.75rem 1rem !important;
+			min-width: 80px;
+			font-size: 1rem !important;
+	}
+
+	/* Make category tabs more touch-friendly */
+		.management-tabs button {
+			padding: 0.75rem 1.5rem !important;
+			font-size: 1rem !important;
+	}
+	button {
+		transition: transform 0.1s, background-color 0.2s;
+	}
+
+	button:active {
+		transform: scale(0.96);
+	}
+
+	.primary-btn:active {
+		background: #c0392b !important; /* Darker shade of your primary color */
+	}
+    </style>
+</head>
+<body>
+    <!-- Left Panel -->
+    <div class="order-panel">
+        <div class="order-details">
+            <h2>Order #<span id="order-number">1</span></h2>
+            <div id="order-items"></div>
+            <div id="order-total" class="text-lg text-bold">Total: $0.00</div>
+        </div>
+        
+        <div class="numpad">
+            <button onclick="handleNumpad(1)">1</button>
+            <button onclick="handleNumpad(2)">2</button>
+            <button onclick="handleNumpad(3)">3</button>
+            <button onclick="handleNumpad(4)">4</button>
+            <button onclick="handleNumpad(5)">5</button>
+            <button onclick="handleNumpad(6)">6</button>
+            <button onclick="handleNumpad(7)">7</button>
+            <button onclick="handleNumpad(8)">8</button>
+            <button onclick="handleNumpad(9)">9</button>
+        </div>
+		
+		<div class="form-group" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+			<label for="universalOrderCommentInput" style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Order Notes:</label>
+			<textarea id="universalOrderCommentInput" rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;"></textarea>
+		</div>
+
+        <div class="action-buttons">
+            <button class="secondary-btn" onclick="newOrder()">New Order</button>
+            <button class="primary-btn" onclick="sendOrder()">Send Order</button>
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="menu-panel">
+        <div class="category-tabs" id="categories">
+            <!-- Categories will be injected via JS -->
+        </div>
+        
+        <div class="product-grid" id="products">
+            <!-- Products will be injected via JS -->
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Initialize with localStorage
+        let menu = {};
+		let selectedCategory = null;
+		let editingItem = null;
+		let currentManagementTab = 'items';
+        let currentOrder = JSON.parse(localStorage.getItem('currentOrder')) || [];
+        let selectedItemId = null;
+        let orderNumber = parseInt(localStorage.getItem('orderNumber')) || 1;
+		let numpadInput = "";
+		let universalOrderComment = localStorage.getItem('universalOrderComment') || "";
+		
+		async function loadMenu() {
+			try {
+				const response = await fetch('/api/menu');
+				menu = await response.json() || {};
+				if (Object.keys(menu).length > 0) {
+					selectedCategory = Object.keys(menu)[0];
+				}
+				init(); // This will now properly rebuild the UI
+			} catch (error) {
+				showToast('Error loading menu');
+				console.error(error);
+			}
+		}
+		
+		// Replace all localStorage menu operations with API calls
+		async function saveMenuToServer() {
+			try {
+				await fetch('/api/menu', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify(menu)
+				});
+			} catch (error) {
+				showToast('Failed to save menu');
+				console.error(error);
+			}
+		}
+
+        // Initialize UI
+        function init() {
+            // Clear existing category tabs
+			const categoriesDiv = document.getElementById('categories');
+			categoriesDiv.innerHTML = '';
+    
+			// Create new category buttons
+			Object.keys(menu).forEach(category => {
+				const btn = document.createElement('button');
+				btn.className = `category-tab ${category === selectedCategory ? 'active' : ''}`;
+				btn.textContent = category;
+				btn.onclick = () => {
+					document.querySelectorAll('.category-tab').forEach(tab => {
+						tab.classList.remove('active');
+					});
+					btn.classList.add('active');
+					showCategory(category);
+				};
+				categoriesDiv.appendChild(btn);
+			});
+			
+			const universalCommentInputEl = document.getElementById('universalOrderCommentInput');
+		if (universalCommentInputEl) {
+			universalCommentInputEl.value = universalOrderComment;
+			universalCommentInputEl.addEventListener('input', (e) => {
+				universalOrderComment = e.target.value;
+				localStorage.setItem('universalOrderComment', universalOrderComment);
+			});
+		}
+
+			// Show initial category if available
+			if (selectedCategory) {
+				showCategory(selectedCategory);
+			}
+			document.getElementById('order-number').textContent = orderNumber;
+			updateOrderDisplay();
+        }
+		
+		function generateItemId() {
+			const allItems = [].concat(...Object.values(menu));
+			return allItems.length > 0 ? Math.max(...allItems.map(i => i.id)) + 1 : 1;
+		}
+
+        function showCategory(category) {
+            selectedCategory = category;
+            const productsDiv = document.getElementById('products');
+            productsDiv.innerHTML = '';
+            
+            menu[category].forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <h3>${item.name}</h3>
+                    <div class="price">$${item.price.toFixed(2)}</div>
+                `;
+                card.onclick = () => addToOrder(item.id);
+                productsDiv.appendChild(card);
+            });
+        }
+
+        function addToOrder(itemId) {
+            // Find item in all categories
+            let item;
+            Object.values(menu).forEach(category => {
+                const found = category.find(i => i.id === itemId);
+                if(found) item = found;
+            });
+
+            if(item) {
+                const orderItem = {...item, quantity: 1, comment: ""};
+                currentOrder.push(orderItem);
+                updateOrderDisplay(orderItem.id);
+            }
+        }
+
+        function updateOrderDisplay(newItemId) {
+            const orderItemsDiv = document.getElementById('order-items');
+            orderItemsDiv.innerHTML = '';
+            
+            currentOrder.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `order-item ${item.id === selectedItemId ? 'selected-item' : ''}`;
+				div.innerHTML = `
+                <div style="flex: 1;">
+                    <span>${item.quantity}x ${item.name}</span>
+                    ${item.comment ? `<div style="font-size: 0.8em; color: #555;"><em>Note: ${item.comment}</em></div>` : ''}
+                </div>
+                <span class="price" style="text-align: right;">$${(item.price * item.quantity).toFixed(2)}</span>
+                <button onclick="event.stopPropagation(); promptForItemComment(${item.id})" class="secondary-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-left: 5px;">✎</button> <button onclick="event.stopPropagation(); removeItem(${item.id})" class="secondary-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-left: 5px;">×</button>
+            `;
+                div.onclick = () => selectItem(item.id);
+                orderItemsDiv.appendChild(div);
+            });
+
+            const total = currentOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('order-total').textContent = `Total: $${total.toFixed(2)}`;
+            
+            localStorage.setItem('currentOrder', JSON.stringify(currentOrder));
+        }
+		
+		function promptForItemComment(itemId) {
+			// Assumption: itemId is the ID from the menu, and each menu item appears at most once in currentOrder.
+			// If multiple distinct entries of the same menu item are needed, currentOrder items require unique instance IDs.
+			const item = currentOrder.find(i => i.id === itemId);
+			if (item) {
+				const newComment = prompt("Enter note for " + item.name + ":", item.comment || "");
+				if (newComment !== null) { // Prompt returns null if Cancel is hit, empty string if OK with no input
+					item.comment = newComment.trim();
+					updateOrderDisplay(); // Re-render the order to show the new comment
+					localStorage.setItem('currentOrder', JSON.stringify(currentOrder)); // Save updated order
+				}
+			}
+		}
+
+
+    // Add these functions to your JavaScript
+    function toggleManagementModal() {
+        const modal = document.getElementById('managementModal');
+        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        if(modal.style.display === 'block') {
+            loadManagementData();
+        }
+    }
+
+    function switchManagementTab(tab) {
+        currentManagementTab = tab;
+        document.querySelectorAll('.management-tab').forEach(t => 
+            t.classList.remove('active'));
+        document.getElementById(`${tab}Management`).style.display = 'block';
+        document.getElementById(`${currentManagementTab === 'items' ? 'categories' : 'items'}Management`)
+            .style.display = 'none';
+        event.target.classList.add('active');
+    }
+
+    function loadManagementData() {
+        // Load categories into select
+        const categorySelect = document.getElementById('itemCategory');
+        categorySelect.innerHTML = Object.keys(menu).map(c => 
+            `<option value="${c}">${c}</option>`).join('');
+            
+        // Load existing items
+        const itemsList = document.getElementById('existingItems');
+        itemsList.innerHTML = Object.entries(menu).map(([category, items]) => 
+            items.map(item => `
+                <div class="item-row">
+                    <span style="flex:1">${item.name}</span>
+                    <span>$${item.price.toFixed(2)}</span>
+                    <button onclick="editItem(${item.id})">Edit</button>
+                    <button onclick="deleteItem(${item.id})" class="secondary-btn">Delete</button>
+                </div>`
+            ).join('')
+        ).join('');
+        
+        // Load existing categories
+        const categoriesList = document.getElementById('existingCategories');
+        categoriesList.innerHTML = Object.keys(menu).map(c => `
+            <div class="item-row">
+                <span style="flex:1">${c}</span>
+                <button onclick="deleteCategory('${c}')" class="secondary-btn">Delete</button>
+            </div>`
+        ).join('');
+    }
+    
+    function selectItem(itemId) {
+		if (selectedItemId === itemId) {
+			// If clicking the already selected item, deselect it (optional behavior, or just reset input)
+			// For simplicity here, we'll assume clicking an item always means you want to set its quantity.
+			selectedItemId = itemId; // Keep it selected
+			numpadInput = "";    // Reset numpad input for the selected item
+		} else {
+			// Selecting a new item
+			selectedItemId = itemId;
+			numpadInput = "";    // Reset numpad input for the newly selected item
+		}
+		updateOrderDisplay(); // This will re-render and clear any visual numpad input if you had one
+	}
+
+        function removeItem(itemId) {
+            currentOrder = currentOrder.filter(item => item.id !== itemId);
+            updateOrderDisplay();
+        }
+
+        function handleNumpad(digit) { // Changed 'number' to 'digit' for clarity
+		if (!selectedItemId) {
+			showToast('Select an item first');
+			numpadInput = ""; // Clear any stray input if no item is selected
+			return;
+		}
+
+		const item = currentOrder.find(i => i.id === selectedItemId);
+		if (!item) {
+			// This case should ideally not be reached if selectedItemId is valid
+			showToast('Error: Selected item not found.');
+			numpadInput = "";
+			return;
+		}
+
+		numpadInput += String(digit); // Append the pressed digit to our input string
+    
+		let newQuantity = Number(numpadInput);
+
+		// Ensure quantity is at least 1 (or handle 0 if your logic allows)
+		// If numpadInput becomes something invalid like an empty string after some logic (not here), Number("") is 0.
+		if (newQuantity <= 0 && numpadInput !== "") { // Allow typing numbers like "01" which is 1
+		newQuantity = Number(numpadInput.replace(/^0+/, '')) || 0; // Remove leading zeros unless it's just "0"
+			if (newQuantity === 0 && numpadInput !== "0") { // e.g. if numpadInput became empty or invalid
+				// Decide behavior: revert, set to 1, or allow 0 if meaningful
+				// For now, if input becomes invalid non-positive, let's not update or set to previous.
+				// However, with simple concatenation, numpadInput will be like "3", "32", etc.
+				// So newQuantity should be positive.
+			}
+		}
+
+
+		if (newQuantity > 0) {
+			item.quantity = newQuantity;
+		} else if (numpadInput === "0") { // If user explicitly types "0" (if you add a 0 button)
+			item.quantity = 0; 
+		} else {
+			// If numpadInput is empty or leads to invalid number, do nothing or reset to 1
+			// For this implementation, if newQuantity is not >0 (e.g. numpadInput was cleared by other means)
+			// we don't update. It will typically be >0.
+		}
+    
+		// A simpler rule assuming numpad 1-9 will always build positive numbers:
+		// item.quantity = newQuantity > 0 ? newQuantity : item.quantity; // only update if valid positive
+
+		item.quantity = Number(numpadInput); // This directly applies the built-up number. Number("05") is 5. Number("32") is 32.
+
+		updateOrderDisplay();
+	}
+
+        function newOrder() {
+			currentOrder = [];
+			orderNumber++;
+			localStorage.setItem('orderNumber', orderNumber);
+			document.getElementById('order-number').textContent = orderNumber;
+			numpadInput = "";
+			selectedItemId = null;
+
+			universalOrderComment = ""; // <-- ADD THIS
+			localStorage.removeItem('universalOrderComment'); // <-- ADD THIS
+			const universalCommentInputEl = document.getElementById('universalOrderCommentInput'); // <-- ADD THIS
+			if (universalCommentInputEl) universalCommentInputEl.value = ""; // <-- ADD THIS
+
+			updateOrderDisplay();
+			showToast('New order started');
+		}
+
+        async function sendOrder() {
+			if (!currentOrder.length) return showToast('Order is empty!');
+
+			// The printKitchenTicket() here is the frontend one for local display, update it too if needed.
+			// printKitchenTicket(); // This is the JS function, consider if it's still needed or how it uses comments
+
+			const orderData = {
+				number: orderNumber,
+				items: currentOrder, // currentOrder items now have their 'comment' field
+				universalComment: universalOrderComment // Add the universal comment
+				// timestamp: new Date() // Backend can generate this
+			};
+
+			try {
+				// The URL for the fetch call should be relative or configurable
+				// For your current app.py, 'http://localhost:5000/api/orders' is correct if served on same machine
+				const response = await fetch('/api/orders', { // Using relative URL
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(orderData) // orderData now includes all comments
+				});
+
+				if (response.ok) {
+					showToast(`Order #${orderNumber} sent!`);
+					newOrder(); // This will clear currentOrder, universalOrderComment, etc.
+				} else {
+					const errorResult = await response.json().catch(() => ({ message: 'Failed to send order and parse error' }));
+					showToast(`Failed to send order: ${errorResult.message || response.statusText}`);
+				}
+			} catch (error) {
+				console.error('Send order error:', error);
+				showToast('Network error - check server connection.');
+			}
+		}
+
+
+    async function saveItem() {
+        const item = {
+				id: editingItem ? editingItem.id : generateItemId(), // Auto-generate if new
+				name: document.getElementById('itemName').value.trim(),
+				price: Number(document.getElementById('itemPrice').value),
+				category: document.getElementById('itemCategory').value
+			};
+
+            // Validation
+            if (!item.name || isNaN(item.price) || !item.category) {
+                return showToast('Please fill all fields');
+            }
+
+            // Remove old item if editing
+			if (editingItem) {
+				Object.values(menu).forEach(category => {
+					const index = category.findIndex(i => i.id === editingItem.id);
+					if (index > -1) category.splice(index, 1);
+				});
+			}
+        // Add to category
+			menu[item.category].push({
+				id: item.id,
+				name: item.name,
+				price: item.price
+			});
+
+        editingItem = null;
+        clearItemForm();
+        loadManagementData();
+        showCategory(selectedCategory); // Refresh menu display
+        
+        localStorage.setItem('menu', JSON.stringify(menu));
+        showToast('Item saved successfully');
+		
+		await saveMenuToServer();
+    }
+
+    function editItem(itemId) {
+        let foundItem;
+        Object.values(menu).forEach(category => {
+            const item = category.find(i => i.id === itemId);
+            if (item) foundItem = item;
+        });
+
+        if (foundItem) {
+            document.getElementById('itemName').value = foundItem.name;
+            document.getElementById('itemPrice').value = foundItem.price;
+            document.getElementById('itemId').value = foundItem.id;
+            document.getElementById('itemCategory').value = 
+                Object.keys(menu).find(c => menu[c].some(i => i.id === itemId));
+            editingItem = foundItem;
+        }
+    }
+
+    function deleteItem(itemId) {
+        if (!confirm('Delete this item permanently?')) return;
+        
+        Object.values(menu).forEach(category => {
+            const index = category.findIndex(i => i.id === itemId);
+            if (index > -1) category.splice(index, 1);
+        });
+        
+        loadManagementData();
+        showCategory(selectedCategory);
+    }
+
+    async function saveCategory() {
+		const categoryName = document.getElementById('categoryName').value.trim();
+		if (!categoryName) return;
+
+		// Create new menu structure preserving existing items
+		const newMenu = {};
+		Object.keys(menu).forEach(oldCat => {
+			newMenu[oldCat] = menu[oldCat]; // Keep all existing categories and items
+		});
+    
+		// Add new category if it doesn't exist
+		if (!newMenu[categoryName]) {
+			newMenu[categoryName] = [];
+		}
+
+		// Update the menu
+		menu = newMenu;
+		document.getElementById('categoryName').value = '';
+    
+		// Save to server
+		await saveMenuToServer();
+		loadManagementData();
+    
+		// Refresh UI
+		selectedCategory = categoryName;
+		init();
+		showCategory(selectedCategory);
+	}
+
+    function deleteCategory(categoryName) {
+		if (menu[categoryName] && menu[categoryName].length > 0) {
+			if (!confirm(`This category contains ${menu[categoryName].length} items. Delete anyway?`)) {
+				return;
+			}
+		}
+    
+		if (confirm(`Delete category "${categoryName}"?`)) {
+			delete menu[categoryName];
+			saveMenuToServer();
+			loadManagementData();
+        
+			// Select a different category if we deleted the current one
+			if (selectedCategory === categoryName) {
+				selectedCategory = Object.keys(menu)[0] || null;
+			}
+			init();
+		}
+	}
+
+    function clearItemForm() {
+        document.getElementById('itemName').value = '';
+        document.getElementById('itemPrice').value = '';
+        document.getElementById('itemId').value = '';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('managementModal');
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function showToast(message, duration = 3000) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.display = 'block';
+        setTimeout(() => toast.style.display = 'none', duration);
+    }
+    
+    function printKitchenTicket() { // Javascript function
+		const ticketDiv = document.getElementById('kitchenTicket');
+		// ticketDiv.style.display = 'block'; // Only if you want to briefly show it
+
+		document.getElementById('ticket-number').textContent = orderNumber;
+		document.getElementById('ticket-items').innerHTML = currentOrder.map(item =>
+			`<div>${item.quantity}x ${item.name}` +
+			`${item.comment ? ` <small><em>(${item.comment})</em></small>` : ''}</div>`
+		).join('');
+
+		const notesContentEl = document.getElementById('ticket-notes-content');
+		if (notesContentEl) {
+			notesContentEl.textContent = universalOrderComment || "None";
+		}
+		// document.getElementById('ticket-time').textContent = new Date().toLocaleTimeString();
+		// ticketDiv.style.display = 'none'; // Hide after populating if it was shown
+	}
+
+    // Initialize the app
+    loadMenu();
+    
+    </script>
+    <div class="settings-gear" onclick="toggleManagementModal()">⚙️</div>
+
+<div id="managementModal" class="management-modal">
+    <div class="management-content">
+        <div class="management-tabs">
+            <button class="management-tab active" onclick="switchManagementTab('items')">Manage Items</button>
+            <button class="management-tab" onclick="switchManagementTab('categories')">Manage Categories</button>
+        </div>
+
+        <!-- Items Management -->
+        <div id="itemsManagement">
+            <div class="management-form">
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="itemName">
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" step="0.01" id="itemPrice">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="itemCategory"></select>
+                </div>
+                <input type="hidden" id="itemId">
+                <button class="primary-btn" onclick="saveItem()" style="padding: 1rem; font-size: 1.1rem;">
+					💾 SAVE ITEM
+				</button>
+            </div>
+            
+            <div class="item-list" id="existingItems"></div>
+        </div>
+
+        <!-- Categories Management -->
+        <div id="categoriesManagement" style="display: none;">
+            <div class="management-form">
+                <div class="form-group">
+                    <label>Category Name</label>
+                    <input type="text" id="categoryName">
+                </div>
+                <button class="primary-btn" onclick="saveCategory()" style="padding: 1rem; font-size: 1.1rem;">
+					📁 SAVE CATEGORY
+				</button>
+            </div>
+            
+            <div class="item-list" id="existingCategories"></div>
+        </div>
+        
+        <div id="kitchenTicket" class="kitchen-ticket print-section">
+			<h2>Order #<span id="ticket-number">1</span></h2>
+			<div id="ticket-items"></div>
+			<div id="ticket-notes">Notes: <span id="ticket-notes-content"></span></div> <div id="ticket-time"></div>
+		</div>
+        
+    </div>
+</div>
+</body>
+</html>
