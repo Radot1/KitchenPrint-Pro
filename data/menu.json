@@ -1,0 +1,306 @@
+{
+  "Asian Bites": [
+    {
+      "id": 21,
+      "name": "Rock Shrimps",
+      "price": 6.7
+    },
+    {
+      "id": 23,
+      "name": "Prawn Crackers",
+      "price": 4
+    },
+    {
+      "id": 24,
+      "name": "Spring Rolls (5pcs)",
+      "price": 6.2
+    },
+    {
+      "id": 25,
+      "name": "WonTon Crab Cheese (5pcs)",
+      "price": 6.5
+    },
+    {
+      "id": 26,
+      "name": "Gyoza Chicken",
+      "price": 7.2
+    },
+    {
+      "id": 22,
+      "name": "Edamame",
+      "price": 4.2,
+      "options": [
+        "Normal",
+        "Spicy"
+      ]
+    }
+  ],
+  "Bao Buns - Sando": [
+    {
+      "id": 27,
+      "name": "Katsu Chicken Bao Bun",
+      "price": 7.5
+    },
+    {
+      "id": 28,
+      "name": "Katsu Chicken Sando",
+      "price": 8
+    },
+    {
+      "id": 29,
+      "name": "Tonkatsu Pork Bao Bun",
+      "price": 7.5
+    },
+    {
+      "id": 30,
+      "name": "Tonkatsu Pork Sando",
+      "price": 8
+    },
+    {
+      "id": 31,
+      "name": "Crispy Shrimp Bao Bun",
+      "price": 7.8
+    },
+    {
+      "id": 32,
+      "name": "Crispy Shrimp Sando",
+      "price": 8.3
+    },
+    {
+      "id": 33,
+      "name": "Mushroom Bao Bun (VE)",
+      "price": 6.5
+    },
+    {
+      "id": 34,
+      "name": "Mushroom Sando (VE)",
+      "price": 7
+    }
+  ],
+  "Desserts": [
+    {
+      "id": 43,
+      "name": "Sweet Bao Bun (1pc)",
+      "price": 3.5
+    },
+    {
+      "id": 44,
+      "name": "Sweet Sando",
+      "price": 6.5
+    },
+    {
+      "id": 45,
+      "name": "Mochi (1pc)",
+      "price": 2.5
+    }
+  ],
+  "Handmade Dips": [
+    {
+      "id": 46,
+      "name": "Sweet Chilly Dip",
+      "price": 0.6
+    },
+    {
+      "id": 47,
+      "name": "Teriyaki Sauce Dip",
+      "price": 0.8
+    },
+    {
+      "id": 48,
+      "name": "Hoisin Sauce Dip",
+      "price": 0.8
+    },
+    {
+      "id": 49,
+      "name": "Tobiko Mayo Dip",
+      "price": 1.2
+    },
+    {
+      "id": 50,
+      "name": "Pepper Mayo Dip",
+      "price": 0.8
+    },
+    {
+      "id": 51,
+      "name": "Sweet Chilly Mayo Dip",
+      "price": 0.8
+    },
+    {
+      "id": 52,
+      "name": "Soya Mayo Dip",
+      "price": 0.8
+    },
+    {
+      "id": 53,
+      "name": "Avocado Mayo Dip",
+      "price": 1.2
+    },
+    {
+      "id": 54,
+      "name": "Vegan Mayo Dip",
+      "price": 1
+    },
+    {
+      "id": 55,
+      "name": "Orange Sauce Dip",
+      "price": 0.8
+    },
+    {
+      "id": 56,
+      "name": "Hickory Sauce Dip",
+      "price": 0.8
+    }
+  ],
+  "INSIDE OUT ROLLS": [
+    {
+      "id": 6,
+      "name": "Chicken Katsu Roll",
+      "price": 8.5
+    },
+    {
+      "id": 7,
+      "name": "California",
+      "price": 8
+    },
+    {
+      "id": 8,
+      "name": "Philadelphia",
+      "price": 8.8
+    },
+    {
+      "id": 9,
+      "name": "Smoked Salmon Uramaki",
+      "price": 8
+    },
+    {
+      "id": 10,
+      "name": "Tofu Uramaki (VE)",
+      "price": 7.8
+    }
+  ],
+  "MAKI ROLLS": [
+    {
+      "id": 1,
+      "name": "Salmon Maki",
+      "price": 8
+    },
+    {
+      "id": 2,
+      "name": "Seabass Maki",
+      "price": 7.5
+    },
+    {
+      "id": 3,
+      "name": "Tsipura Maki",
+      "price": 7.5
+    },
+    {
+      "id": 4,
+      "name": "Tuna Maki",
+      "price": 8
+    },
+    {
+      "id": 5,
+      "name": "Vegan Maki",
+      "price": 6
+    }
+  ],
+  "NIGIRI (4 pcs)": [
+    {
+      "id": 11,
+      "name": "Salmon Nigiri",
+      "price": 8.5
+    },
+    {
+      "id": 12,
+      "name": "Tuna Nigiri",
+      "price": 8.5
+    },
+    {
+      "id": 13,
+      "name": "Shrimp Nigiri",
+      "price": 7.8
+    },
+    {
+      "id": 14,
+      "name": "Tofu Nigiri",
+      "price": 7.5
+    }
+  ],
+  "Noodle Bar": [
+    {
+      "id": 35,
+      "name": "Noodles (Wok Base)",
+      "price": 4
+    },
+    {
+      "id": 36,
+      "name": "Rice Noodles (Wok Base)",
+      "price": 4
+    },
+    {
+      "id": 37,
+      "name": "Wok Veggies & Hoisin Mix",
+      "price": 3
+    },
+    {
+      "id": 38,
+      "name": "Wok Veggies & Sweet Chilly Mix",
+      "price": 3.5
+    },
+    {
+      "id": 39,
+      "name": "Extra Shrimp (Noodle Bar)",
+      "price": 2.5
+    },
+    {
+      "id": 40,
+      "name": "Extra Beef (Noodle Bar)",
+      "price": 3.5
+    },
+    {
+      "id": 41,
+      "name": "Extra Chicken (Noodle Bar)",
+      "price": 2
+    },
+    {
+      "id": 42,
+      "name": "Extra Tofu (Noodle Bar)",
+      "price": 2
+    }
+  ],
+  "ONIGIRI (1 pc)": [
+    {
+      "id": 15,
+      "name": "Smoked Salmon Onigiri",
+      "price": 4
+    },
+    {
+      "id": 16,
+      "name": "Smoked Tuna Onigiri",
+      "price": 3.6
+    },
+    {
+      "id": 17,
+      "name": "Surimi Onigiri",
+      "price": 3.5
+    }
+  ],
+  "Salads": [
+    {
+      "id": 18,
+      "name": "Salmon Salad",
+      "price": 8.5
+    },
+    {
+      "id": 19,
+      "name": "Noodles Salad",
+      "price": 8
+    },
+    {
+      "id": 20,
+      "name": "Wakame - Crab Salad",
+      "price": 8
+    }
+  ]
+}

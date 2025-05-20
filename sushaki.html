@@ -101,29 +101,41 @@
 			height: 100vh; /* Add this to ensure proper height */
         }
 
-        .category-tabs {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            overflow-x: auto;
-        }
+        /* Category Tabs Container */
+		.category-tabs {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.75rem;
+			margin-bottom: 1.5rem;
+			padding-bottom: 1rem;
+			border-bottom: 1px solid #e0e0e0; /* This should add the line */
+		}
 
-        .category-tab {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 24px;
-            background: #eee;
-            cursor: pointer;
-            font-size: 1rem;
-            white-space: nowrap;
-            min-width: fit-content;
-        }
+		/* Individual Category Tab (Pill) - Inactive State */
+		.category-tab {
+			padding: 0.75rem 1.5rem;
+			border: 1px solid #d0d0d0;    /* This should add the border */
+			border-radius: 24px;
+			background: white;            /* This should make them white */
+			color: var(--text);
+			cursor: pointer;
+			font-size: 1rem;
+			white-space: nowrap;
+			min-width: fit-content;
+			transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+		}
 
-        .category-tab.active {
-            background: var(--primary);
-            color: white;
-        }
+		.category-tab:hover {
+			border-color: #a0a0a0;
+			background-color: #f9f9f9;
+		}
+
+		/* Active tab style - make sure this comes AFTER the default .category-tab styles */
+		.category-tab.active {
+			background: var(--primary);
+			color: white;
+			border-color: var(--primary);
+		}
 
         .product-grid {
             display: grid;
@@ -148,15 +160,36 @@
             transform: scale(0.98);
             background: var(--highlight);
         }
+		
+		.product-card h3 {
+			margin-bottom: 0.5rem; /* Add some space between name and price if name is short */
+			/* The following properties enable multi-line ellipsis */
+			display: -webkit-box;
+			-webkit-box-orient: vertical;
+			-webkit-line-clamp: 2; /* Show a maximum of 2 lines */
+			overflow: hidden;
+			text-overflow: ellipsis;
+			/* Fallback for non-WebKit browsers (might only work for single line effectively without JS) */
+			/* For single line ellipsis as a simpler fallback:
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			*/
+			/* We need to ensure h3 can have a height that accommodates two lines */
+			/* The flex properties on .product-card should allow this.
+			   If card min-height is an issue, this might need adjustment.
+			   Let's assume min-height: 6rem on product-card is enough. */
+		}
 
         /* Order Items */
         .order-item {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            animation: fadeIn 0.3s ease-out;
-        }
+			padding: 0.75rem 0;
+			border-bottom: 1px solid #eee;
+			display: flex;
+			justify-content: space-between;
+			align-items: center; /* ADD THIS LINE for vertical centering */
+			animation: fadeIn 0.3s ease-out;
+		}
 
         .order-item.new {
             background: var(--highlight);
@@ -164,6 +197,23 @@
             padding-left: 0.5rem;
             margin-left: -0.5rem;
         }
+		
+		.order-item-actions {
+			display: flex;
+			align-items: center; 
+			gap: 0.5rem; 
+			margin-left: 0.75rem; 
+		}
+		
+		.order-item-actions .secondary-btn {
+			padding: 0.6rem 0.8rem; 
+			font-size: 1.2rem;  
+			min-width: 2.8rem;  
+			min-height: 2.8rem; 
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+		}
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -196,6 +246,17 @@
             border-radius: 8px;
             font-weight: 500;
         }
+		
+		.order-item .secondary-btn {
+			padding: 0.6rem 0.8rem;  /* Makes the button bigger */
+			font-size: 1.2rem;     /* Makes the icon/text inside bigger */
+			min-width: 2.8rem;     /* Ensures a minimum tap width */
+			min-height: 2.8rem;    /* Ensures a minimum tap height */
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			margin-left: 0.5rem; /* Keeps a small gap to the left */
+		}
 
         /* Utility */
         .price {
@@ -213,24 +274,75 @@
         
          /* Management Modal Styles */
     .management-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-        padding: 2rem;
-    }
+		display: none; /* Initially hidden, JS will set it to 'flex' */
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0,0,0,0.5);
+		z-index: 1000;
+		padding: 2rem;
+		/* These are key for centering its child, .management-content */
+		align-items: center;
+		justify-content: center;
+		/* overflow: hidden; /* Optional: good to prevent overlay scroll if content somehow overflows it */
+	}
+	
+	.management-modal .form-actions button,
+		#itemOptionSelectModal .form-actions button {
+			padding: 0.8rem 1.5rem;
+			font-size: 1rem;
+			font-weight: 500;
+			border-radius: 8px;
+			border: none; /* Ensure no border */
+			text-align: center;
+			height: 3rem; /* Explicit height */
+			display: inline-flex; /* For centering content */
+			align-items: center;
+			justify-content: center;
+			/* flex-grow: 1; /* Removed */
+			/* Add a min-width if they become too narrow */
+			min-width: 100px; /* Example: Adjust as needed */
+		}
+		
+		#itemOptionSelectModal .form-actions {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 0.75rem;
+		}
 
-    .management-content {
-        background: white;
-        max-width: 600px;
-        margin: 2rem auto;
-        border-radius: 8px;
-        padding: 1.5rem;
-    }
+		#itemOptionSelectModal .form-actions button {
+			width: 100%;
+			margin: 0;
+		}
+
+	/* Ensure the primary and secondary styles are maintained if the above is more specific */
+	.management-modal .form-actions .primary-btn,
+	#itemOptionSelectModal .form-actions .primary-btn {
+		background: var(--primary);
+		color: white;
+		border: none;
+	}
+
+	.management-modal .form-actions .secondary-btn,
+	#itemOptionSelectModal .form-actions .secondary-btn {
+		background: #ddd; /* Your existing secondary button background */
+		color: var(--text); /* Ensure good contrast if default is not clear */
+		border: none;
+	}
+
+	.management-content {
+		background: white;
+		max-width: 600px;
+		width: 100%;
+		margin: 0; /* IMPORTANT: Let the flex parent handle margins for centering */
+		border-radius: 8px;
+		padding: 1.5rem;
+		max-height: calc(100vh - 4rem); /* Max height considering modal's top/bottom padding */
+		overflow-y: auto;   /* Makes the content scrollable if it exceeds max-height */
+		display: block;     /* This is fine, or flex; flex-direction: column; */
+	}
 
     .management-tabs {
         display: flex;
@@ -406,6 +518,47 @@
 		border-left: 3px solid var(--primary); /* Add a distinct left border */
 		/* font-weight: 500; /* Optional: make text slightly bolder */
 	}
+	
+	.options-badge {
+		font-size: 0.65em; /* Small badge */
+		font-weight: 500;
+		background-color: var(--secondary); /* Or another subtle color */
+		color: white;
+		padding: 2px 5px;
+		border-radius: 3px;
+		margin-left: 8px;
+		white-space: nowrap;
+		align-self: center; /* Align with the item name if in a flex container */
+	}
+	
+	.option-pill {
+		display: inline-flex;
+		align-items: center;
+		background-color: var(--secondary); /* Using your secondary color for pills */
+		color: white;
+		padding: 0.4rem 0.8rem;
+		border-radius: 16px; /* Pill shape */
+		font-size: 0.9em;
+		/* margin-right: 0.5rem; /* Gap is handled by parent flex container */
+		/* margin-bottom: 0.5rem; /* Gap is handled by parent flex container */
+		line-height: 1;
+	}
+
+	.option-pill .remove-option-btn { /* The 'x' button inside the pill */
+		background: none;
+		border: none;
+		color: white;
+		margin-left: 0.6rem;
+		cursor: pointer;
+		font-size: 1.2em; /* Make 'x' a bit larger */
+		padding: 0;
+		line-height: 0.5; /* Adjust for better vertical alignment of '×' */
+		font-weight: bold;
+	}
+
+	.option-pill .remove-option-btn:hover {
+		color: #ffd0d0; /* Light red hover for delete */
+	}
     </style>
 </head>
 <body>
@@ -457,212 +610,283 @@
     <script>
         // Initialize with localStorage
 		let menu = {};
-		let selectedCategory = null;
-		let editingItem = null;
-		let currentManagementTab = 'items';
-		let currentOrder = JSON.parse(localStorage.getItem('currentOrder')) || [];
-		let selectedItemId = null;
+        let selectedCategory = null;
+        let editingItem = null;
+        let currentManagementTab = 'items';
+        let currentOrder = JSON.parse(localStorage.getItem('currentOrder')) || [];
+        let selectedItemId = null; 
+        let tempItemOptions = [];
+        let currentItemWithOptions = null; 
+        let numpadInput = "";
+        let universalOrderComment = localStorage.getItem('universalOrderComment') || "";
 
-		let numpadInput = "";
-		let universalOrderComment = localStorage.getItem('universalOrderComment') || "";
+        const ORDER_NUMBER_KEY = 'dailyOrderNumber';
+        const LAST_ORDER_DATE_KEY = 'lastOrderDate';
+        let orderNumber; 
 
-		const ORDER_NUMBER_KEY = 'dailyOrderNumber'; // Changed key to avoid conflict if old 'orderNumber' exists
-		const LAST_ORDER_DATE_KEY = 'lastOrderDate';
-		let orderNumber; // This will be initialized by our new function
-		
-		
-		function getLocalDateStr() {
-			const now = new Date();
-			const year = now.getFullYear();
-			const month = (now.getMonth() + 1).toString().padStart(2, '0'); // JavaScript months are 0-indexed
-			const day = now.getDate().toString().padStart(2, '0');
-			return `${year}-${month}-${day}`;
-		}
-		
-		async function loadMenu() {
-			try {
-				const response = await fetch('/api/menu');
-				menu = await response.json() || {};
-				if (Object.keys(menu).length > 0) {
-					selectedCategory = Object.keys(menu)[0];
-				}
-				init(); // This will now properly rebuild the UI
-			} catch (error) {
-				showToast('Error loading menu');
-				console.error(error);
-			}
-		}
-		
-		// Replace all localStorage menu operations with API calls
-		async function saveMenuToServer() {
-			try {
-				await fetch('/api/menu', {
-					method: 'POST',
-					headers: {'Content-Type': 'application/json'},
-					body: JSON.stringify(menu)
-				});
-			} catch (error) {
-				showToast('Failed to save menu');
-				console.error(error);
-			}
-		}
-		
-		function initializeOrderNumberAndDate() {
-			const todayStr = getLocalDateStr();
-			const storedLastOrderDate = localStorage.getItem(LAST_ORDER_DATE_KEY);
-			const storedOrderNumber = parseInt(localStorage.getItem(ORDER_NUMBER_KEY));
-
-			if (storedLastOrderDate === todayStr && !isNaN(storedOrderNumber) && storedOrderNumber > 0) {
-				// It's the same day, and we have a valid stored number
-				orderNumber = storedOrderNumber;
-			} else {
-				// It's a new day, or no valid number was stored for today
-				orderNumber = 1;
-			}
-			// Always update the last order date to today and store the (potentially new) order number
-			localStorage.setItem(LAST_ORDER_DATE_KEY, todayStr);
-			localStorage.setItem(ORDER_NUMBER_KEY, orderNumber);
-			// The order number will be displayed by the init() function later
-		}
-
-        // Initialize UI
-        function init() {
-            // Clear existing category tabs
-			const categoriesDiv = document.getElementById('categories');
-			categoriesDiv.innerHTML = '';
-    
-			// Create new category buttons
-			Object.keys(menu).forEach(category => {
-				const btn = document.createElement('button');
-				btn.className = `category-tab ${category === selectedCategory ? 'active' : ''}`;
-				btn.textContent = category;
-				btn.onclick = () => {
-					document.querySelectorAll('.category-tab').forEach(tab => {
-						tab.classList.remove('active');
-					});
-					btn.classList.add('active');
-					showCategory(category);
-				};
-				categoriesDiv.appendChild(btn);
-			});
-			
-			const universalCommentInputEl = document.getElementById('universalOrderCommentInput');
-		if (universalCommentInputEl) {
-			universalCommentInputEl.value = universalOrderComment;
-			universalCommentInputEl.addEventListener('input', (e) => {
-				universalOrderComment = e.target.value;
-				localStorage.setItem('universalOrderComment', universalOrderComment);
-			});
-		}
-
-			// Show initial category if available
-			if (selectedCategory) {
-				showCategory(selectedCategory);
-			}
-			document.getElementById('order-number').textContent = orderNumber;
-			updateOrderDisplay();
+        function getLocalDateStr() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
-		
-		function generateItemId() {
-			const allItems = [].concat(...Object.values(menu));
-			return allItems.length > 0 ? Math.max(...allItems.map(i => i.id)) + 1 : 1;
-		}
-		
-		function handleNumpadClear() {
-			if (!selectedItemId) {
-				showToast('Select an item first');
-				return;
-			}
-			const item = currentOrder.find(i => i.id === selectedItemId);
-			if (item) {
-				numpadInput = ""; // Clear the internal numpad buffer
-				// Decide what quantity to set on clear. Often, it's reset to 1.
-				// Or, if you want to clear the input but not necessarily change quantity yet,
-				// this clear might just affect the next numpadInput.
-				// For now, let's make it reset the current input and set quantity to 1
-				// if the input becomes empty, or to the valid part of input.
-				// A simple clear could just reset numpadInput, and the next digit starts fresh.
-				// Let's make 'Clear' reset the quantity to 1 for the selected item.
-				item.quantity = 1;
-				numpadInput = ""; // Reset for next input
-				showToast('Quantity cleared, set to 1.');
-				updateOrderDisplay();
-			}
-		}
 
-		function handleNumpadBackspace() {
-			if (!selectedItemId) {
-				showToast('Select an item first');
-				return;
-			}
-			const item = currentOrder.find(i => i.id === selectedItemId);
-			if (item) {
-				if (numpadInput.length > 0) {
-					numpadInput = numpadInput.slice(0, -1); // Remove the last character
-				}
+        async function loadMenu() {
+            try {
+                const response = await fetch('/api/menu');
+                menu = await response.json() || {};
+                if (Object.keys(menu).length > 0) {
+                    selectedCategory = Object.keys(menu)[0];
+                }
+                init();
+            } catch (error) {
+                showToast('Error loading menu');
+                console.error(error);
+            }
+        }
 
-				// After removing a digit:
-				if (numpadInput === "") {
-					// If buffer is now empty, set quantity to 1
-					item.quantity = 1;
-				} else {
-					// If buffer still has content, update quantity to its numeric value
-					let newQuantity = Number(numpadInput);
-					// Ensure quantity is positive, if "0" remains, treat as 1 for quantity
-					item.quantity = (newQuantity > 0) ? newQuantity : 1;
-				}
-				updateOrderDisplay();
-			}
-		}
+        async function saveMenuToServer() {
+            try {
+                await fetch('/api/menu', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(menu)
+                });
+            } catch (error) {
+                showToast('Failed to save menu');
+                console.error(error);
+            }
+        }
+
+        function initializeOrderNumberAndDate() {
+            const todayStr = getLocalDateStr();
+            const storedLastOrderDate = localStorage.getItem(LAST_ORDER_DATE_KEY);
+            const storedOrderNumber = parseInt(localStorage.getItem(ORDER_NUMBER_KEY));
+
+            if (storedLastOrderDate === todayStr && !isNaN(storedOrderNumber) && storedOrderNumber > 0) {
+                orderNumber = storedOrderNumber;
+            } else {
+                orderNumber = 1;
+            }
+            localStorage.setItem(LAST_ORDER_DATE_KEY, todayStr);
+            localStorage.setItem(ORDER_NUMBER_KEY, orderNumber);
+        }
+
+        function init() {
+            const categoriesDiv = document.getElementById('categories');
+            categoriesDiv.innerHTML = '';
+    
+            Object.keys(menu).forEach(category => {
+                const btn = document.createElement('button');
+                btn.className = `category-tab ${category === selectedCategory ? 'active' : ''}`;
+                btn.textContent = category;
+                btn.onclick = () => {
+                    document.querySelectorAll('.category-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    btn.classList.add('active');
+                    showCategory(category);
+                };
+                categoriesDiv.appendChild(btn);
+            });
+            
+            const universalCommentInputEl = document.getElementById('universalOrderCommentInput');
+            if (universalCommentInputEl) {
+                universalCommentInputEl.value = universalOrderComment;
+                universalCommentInputEl.addEventListener('input', (e) => {
+                    universalOrderComment = e.target.value;
+                    localStorage.setItem('universalOrderComment', universalOrderComment);
+                });
+            }
+
+            if (selectedCategory) {
+                showCategory(selectedCategory);
+            }
+            document.getElementById('order-number').textContent = orderNumber;
+            updateOrderDisplay();
+        }
+        
+        function generateItemId() {
+            const allItems = [].concat(...Object.values(menu).map(categoryItems => categoryItems || []));
+            return allItems.length > 0 ? Math.max(0, ...allItems.map(i => i.id)) + 1 : 1;
+        }
 
         function showCategory(category) {
             selectedCategory = category;
             const productsDiv = document.getElementById('products');
-            productsDiv.innerHTML = '';
-            
-            menu[category].forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = `
-                    <h3>${item.name}</h3>
-                    <div class="price">$${item.price.toFixed(2)}</div>
-                `;
-                card.onclick = () => addToOrder(item.id);
-                productsDiv.appendChild(card);
-            });
-        }
+            productsDiv.innerHTML = ''; 
 
-        function addToOrder(itemId) {
-            // Find item in all categories
-            let item;
-            Object.values(menu).forEach(category => {
-                const found = category.find(i => i.id === itemId);
-                if(found) item = found;
-            });
+            if (menu[category] && menu[category].length > 0) {
+                menu[category].forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
 
-            if(item) {
-                const orderItem = {...item, quantity: 1, comment: ""};
-                currentOrder.push(orderItem);
-                updateOrderDisplay(orderItem.id);
+                    let optionsBadgeHTML = '';
+                    if (item.options && Array.isArray(item.options) && item.options.length > 0) {
+                        optionsBadgeHTML = `<span class="options-badge">Options</span>`;
+                    }
+
+                    card.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <h3 title="${item.name}">${item.name}</h3>
+                            ${optionsBadgeHTML}
+                        </div>
+                        <div class="price">$${item.price.toFixed(2)}</div>
+                    `;
+                    card.onclick = () => addToOrder(item.id);
+                    productsDiv.appendChild(card);
+                });
+            } else {
+                productsDiv.innerHTML = '<p style="text-align: center; width: 100%;">No items in this category.</p>';
             }
         }
 
-        function updateOrderDisplay(newItemId) {
+        function addToOrder(itemId) {
+            let menuItem;
+            Object.values(menu).forEach(categoryItems => {
+                const found = (categoryItems || []).find(i => i.id === itemId);
+                if (found) menuItem = found;
+            });
+
+            if (!menuItem) {
+                console.error("Menu item not found:", itemId);
+                return;
+            }
+
+            if (menuItem.options && Array.isArray(menuItem.options) && menuItem.options.length > 0) {
+                openItemOptionSelectModal(menuItem);
+            } else {
+                const existingOrderItem = currentOrder.find(orderItem => orderItem.id === menuItem.id && !orderItem.selectedOption);
+
+                if (existingOrderItem) {
+                    existingOrderItem.quantity++;
+                } else {
+                    const newOrderItem = { ...menuItem, quantity: 1, comment: "" };
+                    newOrderItem.orderId = String(menuItem.id); 
+                    currentOrder.push(newOrderItem);
+                }
+                updateOrderDisplay();
+            }
+        }
+
+        function openItemOptionSelectModal(menuItem) {
+            currentItemWithOptions = menuItem;
+            const modal = document.getElementById('itemOptionSelectModal');
+            const itemNameEl = document.getElementById('optionModalItemName');
+            const optionsContainerEl = document.getElementById('optionModalOptionsContainer');
+
+            itemNameEl.textContent = `Select Option for: ${menuItem.name}`;
+            optionsContainerEl.innerHTML = '';
+
+            if (menuItem.options && menuItem.options.length > 0) {
+                menuItem.options.forEach((option, index) => {
+                    const optionId = `item_option_${menuItem.id}_${index}`;
+                    const div = document.createElement('div');
+                    div.style.padding = "0.5rem";
+                    div.style.border = "1px solid #eee";
+                    div.style.borderRadius = "4px";
+                    div.style.cursor = "pointer";
+                    div.onclick = () => { 
+                        const radioBtn = document.getElementById(optionId);
+                        if(radioBtn) radioBtn.checked = true; 
+                        document.querySelectorAll('#optionModalOptionsContainer div').forEach(d => d.style.borderColor = '#eee');
+                        div.style.borderColor = 'var(--primary)';
+                    };
+
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `item_option_for_${menuItem.id}`;
+                    radio.id = optionId;
+                    radio.value = option;
+                    if (index === 0) {
+                        radio.checked = true;
+                        div.style.borderColor = 'var(--primary)';
+                    }
+
+                    const label = document.createElement('label');
+                    label.htmlFor = optionId;
+                    label.textContent = option;
+                    label.style.marginLeft = "0.5rem";
+                    label.style.cursor = "pointer";
+
+                    div.appendChild(radio);
+                    div.appendChild(label);
+                    optionsContainerEl.appendChild(div);
+                });
+            } else {
+                optionsContainerEl.textContent = "No options available for this item.";
+            }
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function cancelOptionSelection() {
+            const modal = document.getElementById('itemOptionSelectModal');
+            if (modal) modal.style.display = 'none';
+            currentItemWithOptions = null;
+        }
+
+        function confirmOptionSelection() {
+            if (!currentItemWithOptions) return;
+
+            const optionsContainerEl = document.getElementById('optionModalOptionsContainer');
+            const selectedRadio = optionsContainerEl.querySelector('input[type="radio"]:checked');
+
+            if (!selectedRadio) {
+                showToast("Please select an option.");
+                return;
+            }
+            const selectedOptionValue = selectedRadio.value;
+            const orderItemIdWithOption = `${currentItemWithOptions.id}-${selectedOptionValue.replace(/\s+/g, '_')}`;
+
+            const existingOrderItem = currentOrder.find(
+                orderItem => orderItem.orderId === orderItemIdWithOption
+            );
+
+            if (existingOrderItem) {
+                existingOrderItem.quantity++;
+            } else {
+                const newOrderItem = { 
+                    ...currentItemWithOptions, 
+                    orderId: orderItemIdWithOption,
+                    quantity: 1, 
+                    comment: "", 
+                    selectedOption: selectedOptionValue 
+                };
+                currentOrder.push(newOrderItem);
+            }
+            updateOrderDisplay();
+            cancelOptionSelection();
+        }
+        
+        function updateOrderDisplay() {
             const orderItemsDiv = document.getElementById('order-items');
             orderItemsDiv.innerHTML = '';
             
             currentOrder.forEach(item => {
                 const div = document.createElement('div');
-                div.className = `order-item ${item.id === selectedItemId ? 'selected-item' : ''}`;
-				div.innerHTML = `
+                const uniqueDisplayId = item.orderId ? String(item.orderId) : String(item.id); 
+
+                div.className = `order-item ${uniqueDisplayId === selectedItemId ? 'selected-item' : ''}`;
+                
+                let optionDisplayHTML = '';
+                if (item.selectedOption) {
+                    optionDisplayHTML = `<div style="font-size: 0.8em; color: #777; margin-left: 10px;">↳ ${item.selectedOption}</div>`;
+                }
+
+                div.innerHTML = `
                 <div style="flex: 1;">
                     <span>${item.quantity}x ${item.name}</span>
-                    ${item.comment ? `<div style="font-size: 0.8em; color: #555;"><em>Note: ${item.comment}</em></div>` : ''}
+                    ${optionDisplayHTML}
+                    ${item.comment ? `<div style="font-size: 0.8em; color: #555; margin-left: 10px;"><em>Note: ${item.comment}</em></div>` : ''}
                 </div>
                 <span class="price" style="text-align: right;">$${(item.price * item.quantity).toFixed(2)}</span>
-                <button onclick="event.stopPropagation(); promptForItemComment(${item.id})" class="secondary-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-left: 5px;">✎</button> <button onclick="event.stopPropagation(); removeItem(${item.id})" class="secondary-btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-left: 5px;">×</button>
-            `;
-                div.onclick = () => selectItem(item.id);
+                <div class="order-item-actions">
+                    <button onclick="event.stopPropagation(); promptForItemComment('${uniqueDisplayId}')" class="secondary-btn" title="Add Note">✎</button> 
+                    <button onclick="event.stopPropagation(); removeItemByOrderId('${uniqueDisplayId}')" class="secondary-btn" title="Remove Item">×</button>
+                </div>
+                `;
+                div.onclick = () => selectItemByOrderId(uniqueDisplayId); 
                 orderItemsDiv.appendChild(div);
             });
 
@@ -671,374 +895,564 @@
             
             localStorage.setItem('currentOrder', JSON.stringify(currentOrder));
         }
-		
-		function promptForItemComment(itemId) {
-			// Assumption: itemId is the ID from the menu, and each menu item appears at most once in currentOrder.
-			// If multiple distinct entries of the same menu item are needed, currentOrder items require unique instance IDs.
-			const item = currentOrder.find(i => i.id === itemId);
-			if (item) {
-				const newComment = prompt("Enter note for " + item.name + ":", item.comment || "");
-				if (newComment !== null) { // Prompt returns null if Cancel is hit, empty string if OK with no input
-					item.comment = newComment.trim();
-					updateOrderDisplay(); // Re-render the order to show the new comment
-					localStorage.setItem('currentOrder', JSON.stringify(currentOrder)); // Save updated order
-				}
-			}
-		}
-
-
-    // Add these functions to your JavaScript
-    function toggleManagementModal() {
-        const modal = document.getElementById('managementModal');
-        modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
-        if(modal.style.display === 'block') {
-            loadManagementData();
-        }
-    }
-
-    function switchManagementTab(tab) {
-        currentManagementTab = tab;
-        document.querySelectorAll('.management-tab').forEach(t => 
-            t.classList.remove('active'));
-        document.getElementById(`${tab}Management`).style.display = 'block';
-        document.getElementById(`${currentManagementTab === 'items' ? 'categories' : 'items'}Management`)
-            .style.display = 'none';
-        event.target.classList.add('active');
-    }
-
-    function loadManagementData() {
-        // Load categories into select
-        const categorySelect = document.getElementById('itemCategory');
-        categorySelect.innerHTML = Object.keys(menu).map(c => 
-            `<option value="${c}">${c}</option>`).join('');
-            
-        // Load existing items
-        const itemsList = document.getElementById('existingItems');
-        itemsList.innerHTML = Object.entries(menu).map(([category, items]) => 
-            items.map(item => `
-                <div class="item-row">
-                    <span style="flex:1">${item.name}</span>
-                    <span>$${item.price.toFixed(2)}</span>
-                    <button onclick="editItem(${item.id})">Edit</button>
-                    <button onclick="deleteItem(${item.id})" class="secondary-btn">Delete</button>
-                </div>`
-            ).join('')
-        ).join('');
         
-        // Load existing categories
-        const categoriesList = document.getElementById('existingCategories');
-        categoriesList.innerHTML = Object.keys(menu).map(c => `
-            <div class="item-row">
-                <span style="flex:1">${c}</span>
-                <button onclick="deleteCategory('${c}')" class="secondary-btn">Delete</button>
-            </div>`
-        ).join('');
-    }
-    
-    function selectItem(itemId) {
-		if (selectedItemId === itemId) {
-			selectedItemId = itemId; // Keep it selected
-			numpadInput = "";    // Reset numpad input for the selected item
-		} else {
-			selectedItemId = itemId;
-			numpadInput = "";    // Reset numpad input for the newly selected item
-		}
-		// When an item is selected, its current quantity should be loaded into numpadInput
-		// so that appending digits works as expected, or pressing a new digit replaces it.
-		// For the "type 21 or 68" behavior, the first digit pressed should *start* the numpadInput.
-		// So, numpadInput = "" is correct here.
-		updateOrderDisplay();
-	}
-
-        function removeItem(itemId) {
-            currentOrder = currentOrder.filter(item => item.id !== itemId);
+        function selectItemByOrderId(orderId) {
+            if (selectedItemId === orderId) {
+                 selectedItemId = orderId; 
+                 numpadInput = "";
+            } else {
+                selectedItemId = orderId;
+                numpadInput = "";    
+            }
             updateOrderDisplay();
         }
 
-        function handleNumpad(digit) {
-			if (!selectedItemId) {
-				showToast('Select an item first');
-				numpadInput = ""; // Clear buffer if no item is selected
-				return;
-			}
-			const item = currentOrder.find(i => i.id === selectedItemId);
-			if (!item) {
-				showToast('Error: Selected item not found.');
-				numpadInput = ""; // Clear buffer
-				return;
-			}
+        function removeItemByOrderId(orderId) {
+            currentOrder = currentOrder.filter(item => (item.orderId ? String(item.orderId) : String(item.id)) !== orderId);
+            if (selectedItemId === orderId) { 
+                selectedItemId = null;
+                numpadInput = "";
+            }
+            updateOrderDisplay();
+        }
 
-			// If numpadInput is "0" and the new digit is not "0", replace "0"
-			if (numpadInput === "0" && String(digit) !== "0") {
-				numpadInput = String(digit);
-			} else {
-				numpadInput += String(digit); // Append the pressed digit
-			}
+        function promptForItemComment(orderId) { 
+            const item = currentOrder.find(i => (i.orderId ? String(i.orderId) : String(i.id)) === orderId);
+            if (item) {
+                const newComment = prompt("Enter note for " + item.name + (item.selectedOption ? ` (${item.selectedOption})` : '') + ":", item.comment || "");
+                if (newComment !== null) { 
+                    item.comment = newComment.trim();
+                    updateOrderDisplay(); 
+                    localStorage.setItem('currentOrder', JSON.stringify(currentOrder)); 
+                }
+            }
+        }
 
-			let newQuantity = Number(numpadInput);
-
-			// Ensure quantity is positive; if input becomes invalid or zero, default to 1.
-			if (isNaN(newQuantity) || newQuantity <= 0) {
-				item.quantity = 1;
-				// If the input was problematic, we might want to reset numpadInput
-				// to reflect the quantity of 1, to avoid "03" becoming quantity 1
-				// but numpadInput still being "03".
-				// For simplicity now, we'll let numpadInput hold what was typed,
-				// and item.quantity holds the sanitized version.
-				// However, for better UX, if newQuantity became 1 due to bad input,
-				// numpadInput perhaps should also become "1".
-				// Let's ensure that if a quantity is 0 or less it becomes 1
-				if (Number(numpadInput) <=0) numpadInput = "1"; // Keep numpadInput reflecting the forced 1
-
-			} else {
-				item.quantity = newQuantity;
-			}
-
-			updateOrderDisplay();
-		}
-		
-		function handleNumpadClear() {
-			if (!selectedItemId) {
-				showToast('Select an item first');
-				return;
-			}
-			const item = currentOrder.find(i => i.id === selectedItemId);
-			if (item) {
-				numpadInput = "";   // Make the numpad input buffer truly empty
-				item.quantity = 1;    // Set quantity to 1
-				showToast('Input cleared. Quantity set to 1.');
-				updateOrderDisplay();
-			}
-		}
-
-        function newOrder() {
-			currentOrder = [];
-
-			const todayStr = getLocalDateStr();
-			const storedLastOrderDate = localStorage.getItem(LAST_ORDER_DATE_KEY);
-
-			// Check if the day has changed since the last order or page load
-			if (storedLastOrderDate !== todayStr) {
-				orderNumber = 1; // Reset to 1 for the new day
-				localStorage.setItem(LAST_ORDER_DATE_KEY, todayStr); // Update the date in storage
-			} else {
-				// It's the same day, so just increment the current orderNumber.
-				// The orderNumber variable holds the last used number for the current day.
-				orderNumber++;
-			}
-
-			localStorage.setItem(ORDER_NUMBER_KEY, orderNumber); // Save the new/incremented number for the current day
-			document.getElementById('order-number').textContent = orderNumber;
-
-			// Reset other order-specific states
-			numpadInput = "";
-			selectedItemId = null;
-			universalOrderComment = "";
-			localStorage.removeItem('universalOrderComment');
-			const universalCommentInputEl = document.getElementById('universalOrderCommentInput');
-			if (universalCommentInputEl) universalCommentInputEl.value = "";
-
-			updateOrderDisplay();
-			showToast('New order started');
-		}
-
-        async function sendOrder() {
-			if (!currentOrder.length) return showToast('Order is empty!');
-
-			// The printKitchenTicket() here is the frontend one for local display, update it too if needed.
-			// printKitchenTicket(); // This is the JS function, consider if it's still needed or how it uses comments
-
-			const orderData = {
-				number: orderNumber,
-				items: currentOrder, // currentOrder items now have their 'comment' field
-				universalComment: universalOrderComment // Add the universal comment
-				// timestamp: new Date() // Backend can generate this
-			};
-
-			try {
-				// The URL for the fetch call should be relative or configurable
-				// For your current app.py, 'http://localhost:5000/api/orders' is correct if served on same machine
-				const response = await fetch('/api/orders', { // Using relative URL
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(orderData) // orderData now includes all comments
-				});
-
-				if (response.ok) {
-					showToast(`Order #${orderNumber} sent!`);
-					newOrder(); // This will clear currentOrder, universalOrderComment, etc.
-				} else {
-					const errorResult = await response.json().catch(() => ({ message: 'Failed to send order and parse error' }));
-					showToast(`Failed to send order: ${errorResult.message || response.statusText}`);
-				}
-			} catch (error) {
-				console.error('Send order error:', error);
-				showToast('Network error - check server connection.');
-			}
-		}
-
-
-    async function saveItem() {
-        const item = {
-				id: editingItem ? editingItem.id : generateItemId(), // Auto-generate if new
-				name: document.getElementById('itemName').value.trim(),
-				price: Number(document.getElementById('itemPrice').value),
-				category: document.getElementById('itemCategory').value
-			};
-
-            // Validation
-            if (!item.name || isNaN(item.price) || !item.category) {
-                return showToast('Please fill all fields');
+        function handleNumpad(digit) { 
+            if (!selectedItemId) {
+                showToast('Select an item first');
+                numpadInput = ""; 
+                return;
+            }
+            const item = currentOrder.find(i => (i.orderId ? String(i.orderId) : String(i.id)) === selectedItemId);
+            if (!item) {
+                showToast('Error: Selected item not found in order for numpad.');
+                numpadInput = ""; 
+                return;
             }
 
-            // Remove old item if editing
-			if (editingItem) {
-				Object.values(menu).forEach(category => {
-					const index = category.findIndex(i => i.id === editingItem.id);
-					if (index > -1) category.splice(index, 1);
-				});
-			}
-        // Add to category
-			menu[item.category].push({
-				id: item.id,
-				name: item.name,
-				price: item.price
-			});
+            if (numpadInput === "0" && String(digit) !== "0") {
+                numpadInput = String(digit);
+            } else {
+                numpadInput += String(digit); 
+            }
+            
+            let newQuantity = Number(numpadInput);
 
-        editingItem = null;
-        clearItemForm();
-        loadManagementData();
-        showCategory(selectedCategory); // Refresh menu display
-        
-        localStorage.setItem('menu', JSON.stringify(menu));
-        showToast('Item saved successfully');
-		
-		await saveMenuToServer();
-    }
-
-    function editItem(itemId) {
-        let foundItem;
-        Object.values(menu).forEach(category => {
-            const item = category.find(i => i.id === itemId);
-            if (item) foundItem = item;
-        });
-
-        if (foundItem) {
-            document.getElementById('itemName').value = foundItem.name;
-            document.getElementById('itemPrice').value = foundItem.price;
-            document.getElementById('itemId').value = foundItem.id;
-            document.getElementById('itemCategory').value = 
-                Object.keys(menu).find(c => menu[c].some(i => i.id === itemId));
-            editingItem = foundItem;
+            if (isNaN(newQuantity) || newQuantity <= 0) {
+                item.quantity = 1;
+                if (Number(numpadInput) <=0 && numpadInput !== "0") { 
+                     numpadInput = "1"; 
+                } else if (numpadInput === "0") {
+                    // Allow "0" to be typed, but quantity will be 1
+                } else {
+                     numpadInput = "1";
+                }           
+            } else {
+                item.quantity = newQuantity;
+            }
+            updateOrderDisplay();
         }
-    }
 
-    function deleteItem(itemId) {
-        if (!confirm('Delete this item permanently?')) return;
-        
-        Object.values(menu).forEach(category => {
-            const index = category.findIndex(i => i.id === itemId);
-            if (index > -1) category.splice(index, 1);
-        });
-        
-        loadManagementData();
-        showCategory(selectedCategory);
-    }
-
-    async function saveCategory() {
-		const categoryName = document.getElementById('categoryName').value.trim();
-		if (!categoryName) return;
-
-		// Create new menu structure preserving existing items
-		const newMenu = {};
-		Object.keys(menu).forEach(oldCat => {
-			newMenu[oldCat] = menu[oldCat]; // Keep all existing categories and items
-		});
-    
-		// Add new category if it doesn't exist
-		if (!newMenu[categoryName]) {
-			newMenu[categoryName] = [];
-		}
-
-		// Update the menu
-		menu = newMenu;
-		document.getElementById('categoryName').value = '';
-    
-		// Save to server
-		await saveMenuToServer();
-		loadManagementData();
-    
-		// Refresh UI
-		selectedCategory = categoryName;
-		init();
-		showCategory(selectedCategory);
-	}
-
-    function deleteCategory(categoryName) {
-		if (menu[categoryName] && menu[categoryName].length > 0) {
-			if (!confirm(`This category contains ${menu[categoryName].length} items. Delete anyway?`)) {
-				return;
-			}
-		}
-    
-		if (confirm(`Delete category "${categoryName}"?`)) {
-			delete menu[categoryName];
-			saveMenuToServer();
-			loadManagementData();
-        
-			// Select a different category if we deleted the current one
-			if (selectedCategory === categoryName) {
-				selectedCategory = Object.keys(menu)[0] || null;
-			}
-			init();
-		}
-	}
-
-    function clearItemForm() {
-        document.getElementById('itemName').value = '';
-        document.getElementById('itemPrice').value = '';
-        document.getElementById('itemId').value = '';
-    }
-
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('managementModal');
-        if (event.target === modal) {
-            modal.style.display = 'none';
+        function handleNumpadClear() {
+            if (!selectedItemId) {
+                showToast('Select an item first');
+                return;
+            }
+            const item = currentOrder.find(i => (i.orderId ? String(i.orderId) : String(i.id)) === selectedItemId);
+            if (item) {
+                numpadInput = "";
+                item.quantity = 1;
+                showToast('Input cleared. Quantity set to 1.');
+                updateOrderDisplay();
+            }
         }
-    }
 
-    function showToast(message, duration = 3000) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', duration);
-    }
-    
-    function printKitchenTicket() { // Javascript function
-		const ticketDiv = document.getElementById('kitchenTicket');
-		// ticketDiv.style.display = 'block'; // Only if you want to briefly show it
+        function handleNumpadBackspace() {
+            if (!selectedItemId) {
+                showToast('Select an item first');
+                return;
+            }
+            const item = currentOrder.find(i => (i.orderId ? String(i.orderId) : String(i.id)) === selectedItemId);
+            if (item) {
+                if (numpadInput.length > 0) {
+                    numpadInput = numpadInput.slice(0, -1);
+                }
 
-		document.getElementById('ticket-number').textContent = orderNumber;
-		document.getElementById('ticket-items').innerHTML = currentOrder.map(item =>
-			`<div>${item.quantity}x ${item.name}` +
-			`${item.comment ? ` <small><em>(${item.comment})</em></small>` : ''}</div>`
-		).join('');
+                if (numpadInput === "") {
+                    item.quantity = 1;
+                } else {
+                    let newQuantity = Number(numpadInput);
+                    item.quantity = (newQuantity > 0) ? newQuantity : 1;
+                }
+                updateOrderDisplay();
+            }
+        }
 
-		const notesContentEl = document.getElementById('ticket-notes-content');
-		if (notesContentEl) {
-			notesContentEl.textContent = universalOrderComment || "None";
-		}
-		// document.getElementById('ticket-time').textContent = new Date().toLocaleTimeString();
-		// ticketDiv.style.display = 'none'; // Hide after populating if it was shown
-	}
+        function newOrder() {
+            currentOrder = [];
+            const todayStr = getLocalDateStr();
+            const storedLastOrderDate = localStorage.getItem(LAST_ORDER_DATE_KEY);
 
-    // Initialize the app
-	initializeOrderNumberAndDate();
-    loadMenu();
+            if (storedLastOrderDate !== todayStr) {
+                orderNumber = 1;
+                localStorage.setItem(LAST_ORDER_DATE_KEY, todayStr);
+            } else {
+                orderNumber++;
+            }
+            localStorage.setItem(ORDER_NUMBER_KEY, orderNumber);
+            document.getElementById('order-number').textContent = orderNumber;
+
+            numpadInput = "";
+            selectedItemId = null;
+            universalOrderComment = "";
+            localStorage.removeItem('universalOrderComment');
+            const universalCommentInputEl = document.getElementById('universalOrderCommentInput');
+            if (universalCommentInputEl) universalCommentInputEl.value = "";
+            updateOrderDisplay();
+            showToast('New order started');
+        }
+
+        async function sendOrder() {
+            if (!currentOrder.length) return showToast('Order is empty!');
+            const orderData = {
+                number: orderNumber,
+                items: currentOrder,
+                universalComment: universalOrderComment
+            };
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                if (response.ok) {
+                    showToast(`Order #${orderNumber} sent!`);
+                    newOrder();
+                } else {
+                    const errorResult = await response.json().catch(() => ({ message: 'Failed to send order and parse error' }));
+                    showToast(`Failed to send order: ${errorResult.message || response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Send order error:', error);
+                showToast('Network error - check server connection.');
+            }
+        }
+
+        function toggleManagementModal() {
+            const modal = document.getElementById('managementModal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+                loadManagementData();
+                if (typeof resetItemFormAndUI === 'function') {
+                    resetItemFormAndUI();
+                } else {
+                   clearItemForm();
+                }
+            }
+        }
+
+        function switchManagementTab(tab) {
+            currentManagementTab = tab;
+            document.querySelectorAll('.management-tab').forEach(t => 
+                t.classList.remove('active'));
+            
+            const itemsView = document.getElementById('itemsManagement');
+            const categoriesView = document.getElementById('categoriesManagement');
+            const clickedTabButton = event.target;
+
+            if (tab === 'items') {
+                if(itemsView) itemsView.style.display = 'block';
+                if(categoriesView) categoriesView.style.display = 'none';
+            } else {
+                if(itemsView) itemsView.style.display = 'none';
+                if(categoriesView) categoriesView.style.display = 'block';
+            }
+            if(clickedTabButton) clickedTabButton.classList.add('active');
+        }
+
+        function loadManagementData() {
+            const categorySelect = document.getElementById('itemCategory');
+            if(categorySelect) {
+                categorySelect.innerHTML = Object.keys(menu).map(c => 
+                    `<option value="${c}">${c}</option>`).join('');
+            }
+            
+            const itemsList = document.getElementById('existingItems');
+            if(itemsList) {
+                itemsList.innerHTML = Object.entries(menu).map(([category, itemsInCat]) => 
+                    (itemsInCat || []).map(item => `
+                        <div class="item-row" id="item-row-${item.id}">
+                            <span style="flex:1">${item.name}</span>
+                            <span>$${item.price.toFixed(2)}</span>
+                            <button onclick="editItem(${item.id})">Edit</button>
+                            <button onclick="deleteItem(${item.id})" class="secondary-btn">Delete</button>
+                        </div>`
+                    ).join('')
+                ).join('');
+            }
+            
+            const categoriesList = document.getElementById('existingCategories');
+            if(categoriesList) {
+                categoriesList.innerHTML = Object.keys(menu).map(c => `
+                    <div class="item-row" id="category-row-${c.replace(/\s+/g, '-')}">
+                        <span style="flex:1">${c}</span>
+                        <button onclick="deleteCategory('${c}')" class="secondary-btn">Delete</button>
+                    </div>`
+                ).join('');
+            }
+            if (typeof resetItemFormAndUI === 'function') {
+                 resetItemFormAndUI();
+            } else {
+                clearItemForm();
+            }
+        }
+        
+        function addOptionToItemFormTemp() {
+            const newOptionNameInput = document.getElementById('newOptionNameInput');
+            const optionName = newOptionNameInput.value.trim();
+            if (optionName && !tempItemOptions.includes(optionName)) {
+                tempItemOptions.push(optionName);
+                renderTemporaryOptionsList();
+                newOptionNameInput.value = '';
+            } else if (tempItemOptions.includes(optionName)) {
+                showToast('Option already exists.');
+            } else if (!optionName) {
+                showToast('Option name cannot be empty.');
+            }
+        }
+
+        function renderTemporaryOptionsList() {
+            const listDisplay = document.getElementById('itemOptionsListDisplay');
+            listDisplay.innerHTML = '';
+
+            if (tempItemOptions.length === 0) {
+                listDisplay.innerHTML = '<p style="font-style:italic; color:#777; font-size:0.9em; margin:0; width:100%;">No options added yet.</p>';
+                return;
+            }
+
+            tempItemOptions.forEach(optName => {
+                const pillSpan = document.createElement('span');
+                pillSpan.className = 'option-pill';
+                pillSpan.textContent = optName;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-option-btn';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.title = `Remove option: ${optName}`;
+                removeBtn.onclick = (event) => {
+                    event.stopPropagation(); 
+                    removeTemporaryOption(optName);
+                };
+                pillSpan.appendChild(removeBtn);
+                listDisplay.appendChild(pillSpan);
+            });
+        }
+
+        function removeTemporaryOption(optionName) {
+            tempItemOptions = tempItemOptions.filter(opt => opt !== optionName);
+            renderTemporaryOptionsList();
+        }
+
+        function toggleItemOptionsUI() {
+            const hasOptionsCheckbox = document.getElementById('itemHasOptions');
+            const optionsContainer = document.getElementById('itemOptionsContainer');
+            if (optionsContainer) {
+                optionsContainer.style.display = hasOptionsCheckbox.checked ? 'grid' : 'none';
+                if (!hasOptionsCheckbox.checked) {
+                    tempItemOptions = [];
+                    renderTemporaryOptionsList(); 
+                    const newOptionNameInput = document.getElementById('newOptionNameInput');
+                    if (newOptionNameInput) newOptionNameInput.value = '';
+                } else {
+                    if (tempItemOptions.length === 0) {
+                        renderTemporaryOptionsList();
+                    }
+                }
+            }
+        }
+
+        function clearItemForm() {
+            const itemName = document.getElementById('itemName');
+            const itemPrice = document.getElementById('itemPrice');
+            const itemId = document.getElementById('itemId');
+            const itemCategory = document.getElementById('itemCategory');
+
+            if(itemName) itemName.value = '';
+            if(itemPrice) itemPrice.value = '';
+            if(itemId) itemId.value = ''; 
+            if(itemCategory && itemCategory.options.length > 0) {
+                itemCategory.selectedIndex = 0; 
+            }
+        }
+
+        function resetItemFormAndUI() {
+            clearItemForm(); 
+            editingItem = null; 
+
+            document.querySelectorAll('#existingItems .item-row.editing').forEach(row => {
+                row.classList.remove('editing');
+            });
+
+            const saveBtn = document.getElementById('saveItemBtn');
+            if (saveBtn) saveBtn.innerHTML = '💾 SAVE ITEM';
+            
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            if (cancelBtn) cancelBtn.style.display = 'none';
+
+            const hasOptionsCheckbox = document.getElementById('itemHasOptions');
+            if (hasOptionsCheckbox) {
+                 hasOptionsCheckbox.checked = false;
+            }
+            toggleItemOptionsUI(); 
+        }
+
+        function editItem(itemId) {
+            let foundItem;
+            let itemCategoryName;
+
+            Object.entries(menu).forEach(([category, itemsInCat]) => {
+                const item = (itemsInCat || []).find(i => i.id === itemId);
+                if (item) {
+                    foundItem = item;
+                    itemCategoryName = category;
+                }
+            });
+
+            if (foundItem) {
+                resetItemFormAndUI(); 
+
+                document.getElementById('itemName').value = foundItem.name;
+                document.getElementById('itemPrice').value = foundItem.price;
+                document.getElementById('itemId').value = foundItem.id;
+                document.getElementById('itemCategory').value = itemCategoryName;
+                editingItem = { ...foundItem }; 
+
+                const hasOptionsCheckbox = document.getElementById('itemHasOptions');
+                if (foundItem.options && Array.isArray(foundItem.options) && foundItem.options.length > 0) {
+                    hasOptionsCheckbox.checked = true;
+                    tempItemOptions = [...foundItem.options]; 
+                } else {
+                    hasOptionsCheckbox.checked = false;
+                    tempItemOptions = []; 
+                }
+                toggleItemOptionsUI(); 
+                renderTemporaryOptionsList(); 
+
+                document.querySelectorAll('#existingItems .item-row.editing').forEach(row => {
+                    row.classList.remove('editing');
+                });
+                const selectedRow = document.getElementById(`item-row-${itemId}`);
+                if (selectedRow) {
+                    selectedRow.classList.add('editing');
+                }
+
+                document.getElementById('saveItemBtn').innerHTML = '🔄 UPDATE ITEM';
+                document.getElementById('cancelEditBtn').style.display = 'block';
+                document.getElementById('itemName').focus();
+            }
+        }
+        
+        async function saveItem() {
+            const itemIdValue = document.getElementById('itemId').value;
+            const itemData = {
+                id: editingItem ? editingItem.id : (itemIdValue ? parseInt(itemIdValue) : generateItemId()),
+                name: document.getElementById('itemName').value.trim(),
+                price: Number(document.getElementById('itemPrice').value),
+                category: document.getElementById('itemCategory').value
+            };
+
+            if (!itemData.name || isNaN(itemData.price) || itemData.price < 0 || !itemData.category) {
+                return showToast('Please fill all basic fields correctly. Price must be a positive number.');
+            }
+
+            const hasOptions = document.getElementById('itemHasOptions').checked;
+            if (hasOptions) {
+                itemData.options = [...tempItemOptions]; 
+                if (!itemData.options || itemData.options.length === 0) {
+                    return showToast('Please define at least one option if "Item has options" is checked.');
+                }
+            } else {
+                delete itemData.options; 
+            }
+
+            let originalCategoryOfEditingItem = null;
+            if (editingItem && editingItem.id) { 
+                for (const cat in menu) {
+                    if (menu[cat] && menu[cat].some(i => i.id === editingItem.id)) {
+                        originalCategoryOfEditingItem = cat;
+                        menu[cat] = menu[cat].filter(i => i.id !== editingItem.id);
+                        break; 
+                    }
+                }
+            }
+            
+            if (!menu[itemData.category]) {
+                menu[itemData.category] = [];
+            }
+
+            const itemToSave = { 
+                id: itemData.id, 
+                name: itemData.name, 
+                price: itemData.price 
+            };
+            if (itemData.options) { 
+                itemToSave.options = itemData.options;
+            }
+            
+            const existingIndexInTargetCategory = menu[itemData.category].findIndex(i => i.id === itemData.id);
+            if (existingIndexInTargetCategory > -1) {
+                menu[itemData.category][existingIndexInTargetCategory] = itemToSave;
+            } else {
+                menu[itemData.category].push(itemToSave);
+            }
+                
+            await saveMenuToServer();
+            showToast(editingItem ? 'Item updated successfully!' : 'Item saved successfully!');
+            
+            const categoryOfSavedItem = itemData.category; 
+            resetItemFormAndUI(); 
+            loadManagementData();   
+
+            if (selectedCategory === categoryOfSavedItem || (editingItem && originalCategoryOfEditingItem === selectedCategory)) {
+                 if (menu[selectedCategory] && menu[selectedCategory].length > 0) {
+                    showCategory(selectedCategory);
+                } else if (Object.keys(menu).length > 0 && Object.values(menu).some(catItems => catItems.length > 0) ) { 
+                    const firstCategoryWithItems = Object.keys(menu).find(cat => menu[cat] && menu[cat].length > 0);
+                    selectedCategory = firstCategoryWithItems || Object.keys(menu)[0];
+                    init(); 
+                } else { 
+                    selectedCategory = null; 
+                    document.getElementById('products').innerHTML = '<p style="text-align: center; width: 100%;">No items to display. Add categories and items in settings.</p>';
+                    init(); 
+                }
+            }
+        }
+
+        function deleteItem(itemId) {
+            if (!confirm('Delete this item permanently?')) return;
+            let itemCategory = null;
+            Object.keys(menu).forEach(category => {
+                const index = (menu[category] || []).findIndex(i => i.id === itemId);
+                if (index > -1) {
+                    menu[category].splice(index, 1);
+                    itemCategory = category; // Remember the category
+                }
+            });
+            
+            saveMenuToServer(); // Save changes to backend
+            loadManagementData(); // Reload management list
+
+            // Refresh product view if the deleted item was in the selected category
+            if (selectedCategory === itemCategory) {
+                showCategory(selectedCategory);
+            }
+            showToast('Item deleted.');
+        }
+
+        async function saveCategory() {
+            const categoryName = document.getElementById('categoryName').value.trim();
+            if (!categoryName) return showToast('Category name cannot be empty.');
+            if (menu[categoryName]) return showToast('Category already exists.');
+
+            menu[categoryName] = [];
+            
+            await saveMenuToServer();
+            loadManagementData();
+            
+            selectedCategory = categoryName; // Select the new category
+            init(); // Re-render category tabs and product display
+            showToast(`Category "${categoryName}" added.`);
+        }
+
+        function deleteCategory(categoryName) {
+            if (menu[categoryName] && menu[categoryName].length > 0) {
+                if (!confirm(`Category "${categoryName}" contains items. Delete category and all its items?`)) {
+                    return;
+                }
+            } else if (!confirm(`Delete category "${categoryName}"?`)) {
+                return;
+            }
+        
+            delete menu[categoryName];
+            saveMenuToServer();
+            
+            if (selectedCategory === categoryName) {
+                selectedCategory = Object.keys(menu)[0] || null;
+            }
+            init(); // Re-render tabs and products
+            loadManagementData(); // Reload management lists
+            showToast(`Category "${categoryName}" deleted.`);
+        }
+
+        function cancelEditItem() {
+            resetItemFormAndUI();
+            showToast('Edit cancelled.');
+        }
+
+        window.onclick = function(event) {
+            const managementModal = document.getElementById('managementModal');
+            const optionModal = document.getElementById('itemOptionSelectModal');
+            if (event.target === managementModal) {
+                managementModal.style.display = 'none';
+            }
+            if (event.target === optionModal) {
+                cancelOptionSelection(); // Use the specific cancel function for this modal
+            }
+        }
+
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', duration);
+        }
+        
+        function printKitchenTicket() { 
+            const ticketDiv = document.getElementById('kitchenTicket');
+            document.getElementById('ticket-number').textContent = orderNumber;
+            document.getElementById('ticket-items').innerHTML = currentOrder.map(item =>
+                `<div>${item.quantity}x ${item.name}` +
+                (item.selectedOption ? ` (${item.selectedOption})` : '') +
+                `${item.comment ? ` <small><em>(${item.comment})</em></small>` : ''}</div>`
+            ).join('');
+
+            const notesContentEl = document.getElementById('ticket-notes-content');
+            if (notesContentEl) {
+                notesContentEl.textContent = universalOrderComment || "None";
+            }
+        }
+
+        initializeOrderNumberAndDate();
+        loadMenu();
     
     </script>
     <div class="settings-gear" onclick="toggleManagementModal()">⚙️</div>
+	
+	<div id="itemOptionSelectModal" class="management-modal" style="display: none;">
+    <div class="management-content" style="max-width: 450px;"> 
+        <h3 id="optionModalItemName" style="margin-bottom: 0.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">Select Option</h3>
+        <p id="optionModalItemDescription" style="margin-bottom: 1rem; font-size: 0.9em; color: #555;">Please choose an option for the selected item:</p>
+        <div id="optionModalOptionsContainer" style="margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        </div>
+        <div class="form-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; margin-top: 1rem;">
+            <button type="button" class="secondary-btn" onclick="cancelOptionSelection()">Cancel</button>
+            <button type="button" id="confirmOptionBtn" class="primary-btn" onclick="confirmOptionSelection()">Confirm</button>
+        </div>
+    </div>
+</div>
 
 <div id="managementModal" class="management-modal">
     <div class="management-content">
@@ -1047,8 +1461,7 @@
             <button class="management-tab" onclick="switchManagementTab('categories')">Manage Categories</button>
         </div>
 
-        <!-- Items Management -->
-        <div id="itemsManagement">
+         <div id="itemsManagement">
             <div class="management-form">
                 <div class="form-group">
                     <label>Item Name</label>
@@ -1062,13 +1475,36 @@
                     <label>Category</label>
                     <select id="itemCategory"></select>
                 </div>
-                <input type="hidden" id="itemId">
-                <button class="primary-btn" onclick="saveItem()" style="padding: 1rem; font-size: 1.1rem;">
-					💾 SAVE ITEM
-				</button>
-            </div>
-            
-            <div class="item-list" id="existingItems"></div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
+                        <input type="checkbox" id="itemHasOptions" onchange="toggleItemOptionsUI()" style="width: auto; height: auto; min-height: auto; margin:0; transform: scale(1.2);">
+                        Item has options/variants
+                    </label>
+                </div>
+
+                <div id="itemOptionsContainer" style="display:none; border: 1px dashed #ccc; padding: 1rem; border-radius: 4px; display: grid; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Define Option Names (Pills):</label>
+                        <div id="itemOptionsListDisplay" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; padding: 0.5rem; border: 1px solid #eee; min-height: 40px; border-radius: 4px;">
+                        </div>
+                        <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
+                            <input type="text" id="newOptionNameInput" placeholder="Option name (e.g., Spicy)" style="flex:1;">
+                            <button type="button" class="secondary-btn" onclick="addOptionToItemFormTemp()" style="padding: 0.75rem 1rem !important; margin:0 !important; width:auto !important; height:auto !important; min-height:auto !important; font-size: 0.9rem !important;">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="itemId"> <div class="form-actions" style="display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-top: 1rem;">
+                    <button id="saveItemBtn" class="primary-btn" onclick="saveItem()" style="padding: 1rem; font-size: 1.1rem;">
+                        💾 SAVE ITEM
+                    </button>
+                    <button id="cancelEditBtn" class="secondary-btn" onclick="cancelEditItem()" style="display:none; padding: 1rem; font-size: 1.1rem;">
+                        ✖️ CANCEL EDIT
+                    </button>
+                </div>
+            </div> <div class="item-list" id="existingItems">
+                </div>
         </div>
 
         <!-- Categories Management -->
