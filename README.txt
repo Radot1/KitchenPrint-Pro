@@ -1,58 +1,79 @@
-Sushaki Kitchen Order System
-A simple web-based kitchen order system with a Flask backend for order processing and receipt printing.
+Sushaki Kitchen Order System 🍣🍜
+A simple, web-based kitchen order system designed for small restaurants. It features a Flask backend for order processing, CSV logging, and direct-to-printer thermal receipt generation.
+
+Features
+Web-based Interface: Easy-to-use interface for taking orders, accessible from any device on the local network.
+
+Dynamic Menu Management: Add, edit, and delete categories and items (including items with options/variants) directly through the UI. Menu changes are saved to menu.json.
+
+ESC/POS Receipt Printing: Sends orders directly to a connected thermal receipt printer using ESC/POS commands.
+
+Order Logging: Saves all orders to daily CSV files (orders_YYYY-MM-DD.csv) for record-keeping.
+
+Numpad Integration: Quick quantity adjustments for selected order items.
+
+Order Notes: Add universal notes for the entire order or specific notes for individual items.
 
 Project Structure
 .
-├── app.py              # Flask backend server, handles orders and printing
-├── sushaki.html        # Frontend HTML, CSS, and JavaScript for the order interface
-├── data/               # Directory for data files
-│   └── menu.json       # Editable menu data
-│   └── orders_YYYY-MM-DD.csv # Daily order logs (created automatically)
-├── Start_Sushaki_App.bat # (Optional) Batch file to launch the application on Windows
+├── app.py              # Flask backend server (Python)
+├── sushaki.html        # Frontend (HTML, CSS, JavaScript)
+├── data/
+│   ├── menu.json       # Editable menu data
+│   └── orders_YYYY-MM-DD.csv # Daily order logs (auto-created)
+├── Start_Sushaki_App.bat # Optional Windows launcher
 └── README.md           # This file
 
 Prerequisites
-Python 3: Ensure Python 3 is installed on your system. You can download it from python.org.
+Python 3: Download from python.org.
 
-pip: Python's package installer, usually comes with Python.
+pip: Python package installer (usually included with Python).
 
-Web Browser: A modern web browser (e.g., Chrome, Firefox, Edge).
+Web Browser: Modern browser (Chrome, Firefox, Edge recommended).
 
-Thermal Receipt Printer: An ESC/POS compatible thermal receipt printer (e.g., an 80mm series printer).
+Thermal Receipt Printer: ESC/POS compatible (e.g., 80mm series).
 
 Setup Instructions
-1. Install Python Dependencies
-Open a command prompt or terminal and navigate to the project directory. Install the required Python libraries:
+1. Clone or Download the Repository (If applicable)
+If you're working with Git:
+
+git clone <repository_url>
+cd <repository_directory>
+
+Otherwise, ensure all project files are in a single directory.
+
+2. Install Python Dependencies
+Open your terminal or command prompt, navigate to the project directory, and run:
 
 pip install Flask pywin32
 
-Flask: For the web server.
+Flask: Powers the web server.
 
-pywin32: For interacting with the Windows printing system. This application is currently configured for Windows printing.
+pywin32: Enables interaction with the Windows printing system (Note: Printing is currently Windows-specific).
 
-2. Printer Setup (Crucial)
-For the system to print receipts, you must correctly configure your thermal receipt printer:
+3. Printer Configuration (Critical)
+Accurate printer setup is essential for receipt printing.
 
 a. Install Printer Drivers:
-* Ensure that the correct drivers for your thermal receipt printer are installed on the Windows machine where app.py will run.
-* Follow the manufacturer's instructions for driver installation.
-* After installation, verify that you can print a test page to the printer from Windows.
+* Install the correct Windows drivers for your thermal printer.
+* Print a test page from Windows to confirm basic functionality.
 
-b. Identify the Exact Printer Name:
-* Go to Control Panel > Hardware and Sound > Devices and Printers (or search for "Printers & scanners" in Windows Settings).
-* Locate your installed thermal receipt printer in the list.
-* Note down the exact name of the printer as it appears in Windows. This is case-sensitive and must be precise (e.g., "80mm Series Printer", "EPSON TM-T20II", "POS-80C").
+b. Identify Exact Printer Name:
+* In Windows, go to: Control Panel > Hardware and Sound > Devices and Printers (or search "Printers & scanners").
+* Find your thermal printer and copy its exact name (case-sensitive). Examples: "80mm Series Printer", "EPSON TM-T20II".
 
 c. Configure app.py:
-* Open the app.py file in a text editor.
-* Find the line:
+* Open app.py in a text editor.
+* Locate the PRINTER_NAME variable:
 python PRINTER_NAME = "80mm Series Printer" 
-* Change "80mm Series Printer" to the exact printer name you noted down in the previous step. For example, if your printer is named "My POS Printer", the line should be:
-python PRINTER_NAME = "My POS Printer" 
-* Save the app.py file.
+* Replace "80mm Series Printer" with your printer's exact name:
+python PRINTER_NAME = "Your Exact Printer Name Here" # Example: "My POS Printer" 
+* Save app.py.
 
-3. Prepare Menu Data
-Edit the data/menu.json file to define your restaurant's categories and items. The structure is as follows:
+4. Prepare Menu Data
+The menu is defined in data/menu.json. You can edit this file manually or through the application's settings interface.
+
+The structure is:
 
 {
   "Category Name 1": [
@@ -60,84 +81,94 @@ Edit the data/menu.json file to define your restaurant's categories and items. T
     { "id": 2, "name": "Item Name 1B", "price": 8.00, "options": ["Option X", "Option Y"] }
   ],
   "Category Name 2": [
-    { "id": 3, "name": "Item Name 2A", "price": 12.75 }
+    // ... more items
   ]
 }
 
 id: Must be a unique number for each item across all categories.
 
-options: (Optional) An array of strings if the item has variants.
+options: (Optional) An array of strings for item variants.
 
 Running the Application
-Navigate to Project Directory: Open a command prompt or terminal and go to the directory where app.py, sushaki.html, and the data folder are located.
+Navigate to Project Directory:
+Open your terminal/command prompt and cd into the project folder.
 
 Start the Flask Server:
 
 python app.py
 
-You should see output indicating the server is running, typically on http://localhost:5000/ or http://0.0.0.0:5000/.
+The server will typically start on http://localhost:5000/ or http://0.0.0.0:5000/.
 
-Open in Browser:
-Open your web browser and go to http://localhost:5000/.
-The Sushaki Kitchen Order System interface should load.
+Access in Browser:
+Open your web browser and navigate to http://localhost:5000/.
 
-Using the Start_Sushaki_App.bat (Windows Only):
-If you have created the Start_Sushaki_App.bat file as provided:
+Using Start_Sushaki_App.bat (Windows):
 
-Ensure the .bat file is in the same directory as app.py and sushaki.html.
+Ensure the .bat file is in the same directory as app.py.
 
-Double-click Start_Sushaki_App.bat. This will start the server and open the application in your browser automatically.
+Double-click Start_Sushaki_App.bat to launch the server and open the app in your browser.
 
-How to Use
+How to Use the Interface
 Order Panel (Left):
 
-Shows the current order number, items added, and total.
+Displays current order number, items, and total.
 
-Use the Numpad to adjust the quantity of a selected item.
+Use the on-screen Numpad to change quantities of selected items.
 
-Add "Order Notes" for universal comments applying to the whole order.
+"Order Notes": Add comments for the entire order.
 
-"New Order": Clears the current order and increments the order number.
+Item-specific notes can be added by clicking the pencil icon next to an item in the order list.
 
-"Send Order": Sends the order to the kitchen (prints the receipt via app.py) and logs it to a CSV file in the data directory.
+New Order: Clears the current order, increments the order number.
+
+Send Order: Prints the receipt (via app.py) and logs the order to a CSV file.
 
 Menu Panel (Right):
 
-Select categories to view items.
+Browse categories and click items to add them to the order.
 
-Click on an item to add it to the current order. If an item has options, a modal will appear to select one.
+If an item has options, a selection modal will appear.
 
-Settings Gear (Bottom Right):
-
-Click to open the management modal.
+Settings Gear Icon (⚙️ Bottom Right):
 
 Manage Items: Add, edit, or delete menu items and their options.
 
 Manage Categories: Add or delete categories.
 
-Changes made here are saved to data/menu.json and will reflect immediately in the menu panel.
+Changes are saved to data/menu.json and update the UI instantly.
 
 Troubleshooting
 Cannot Print / Printing Errors:
 
-Double-check the PRINTER_NAME in app.py matches exactly with the name in Windows Devices and Printers.
+Verify PRINTER_NAME in app.py: Must exactly match the name in Windows "Devices and Printers".
 
-Ensure the printer is turned on, connected, has paper, and no error lights are showing.
+Printer Status: Check if it's on, connected, has paper, and no error lights.
 
-Verify printer drivers are correctly installed.
+Drivers: Confirm correct drivers are installed and working.
 
-Check the "Sushaki Server" command prompt window (where app.py is running) for any error messages related to printing.
+Server Logs: Look for error messages in the "Sushaki Server" command prompt window (where app.py is running).
 
-pywin32 not found: Make sure you have installed it via pip install pywin32.
+pywin32 Errors / "ModuleNotFoundError":
 
-Menu not loading / "Error loading menu":
+Ensure it's installed: pip install pywin32.
 
-Ensure data/menu.json exists in the correct location and is valid JSON.
+Menu Not Loading / "Error loading menu":
 
-Check the Flask server console for errors.
+Confirm data/menu.json exists and contains valid JSON.
 
-Application not accessible at http://localhost:5000/:
+Check the Flask server console for file access or JSON parsing errors.
 
-Confirm the Flask server (app.py) is running and did not encounter an error on startup.
+Application Not Accessible (e.g., http://localhost:5000/ doesn't load):
 
-Check if another application is using port 5000.
+Ensure app.py (Flask server) is running without startup errors.
+
+Check if another application is using port 5000. If so, you can change the port in app.py (e.g., app.run(host='0.0.0.0', port=5001, debug=True)).
+
+Future Considerations / Potential Improvements
+Cross-platform printing support (e.g., using python-escpos library for direct USB/Network printing).
+
+User authentication for accessing settings.
+
+More detailed sales reports.
+
+Cloud synchronization for menu and orders (e.g., using Firebase/Supabase).
