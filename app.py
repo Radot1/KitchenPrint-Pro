@@ -24,7 +24,7 @@ GS = b'\x1D'
 InitializePrinter = ESC + b'@'
 BoldOn = ESC + b'E\x01'
 BoldOff = ESC + b'E\x00'
-DoubleHeightWidth = GS + b'!\x11' # For item name
+DoubleHeightWidth = GS + b'!\x11' # For item name, restaurant name, and total
 DoubleHeight = GS + b'!\x01'    # Proposed for option text, used for universal comment
 NormalText = GS + b'!\x00'      # For pricing, etc.
 SelectFontA = ESC + b'M\x00'
@@ -110,31 +110,32 @@ def print_kitchen_ticket(order_data):
     try:
         ticket_content = bytearray()
         ticket_content += InitializePrinter
-        # ticket_content += SelectFontA # Font A is often default, GS ! commands affect current font
-
+        
         NORMAL_FONT_LINE_WIDTH = 42
         EFFECTIVE_LARGE_FONT_LINE_WIDTH = NORMAL_FONT_LINE_WIDTH // 2
 
-        ticket_content += NormalText + BoldOff # Default state for headers
-        restaurant_name = "SUSHAKI RESTAURANT"
-        padding_restaurant = " " * ((NORMAL_FONT_LINE_WIDTH - len(restaurant_name)) // 2)
+        # Restaurant Name - Large and Bold
+        ticket_content += SelectFontA + DoubleHeightWidth + BoldOn 
+        restaurant_name = "To Sushaki" # Changed text
+        padding_restaurant = " " * ((EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(restaurant_name)) // 2)
+        if padding_restaurant < 0: padding_restaurant = 0
         ticket_content += to_bytes(padding_restaurant + restaurant_name + "\n")
-        
+        ticket_content += SelectFontA + NormalText + BoldOff # Reset for "Kitchen Order" header
+
         header_text = "Kitchen Order"
         padding_header = " " * ((NORMAL_FONT_LINE_WIDTH - len(header_text)) // 2)
         ticket_content += to_bytes(padding_header + header_text + "\n")
         ticket_content += to_bytes("-" * NORMAL_FONT_LINE_WIDTH + "\n")
 
         # Order Number - Large and Bold
-        ticket_content += SelectFontA + DoubleHeightWidth + BoldOn # Ensure Font A before styling
+        ticket_content += SelectFontA + DoubleHeightWidth + BoldOn 
         order_num_text = f"Order #: {order_data.get('number', 'N/A')}"
         ticket_content += to_bytes(order_num_text + "\n")
-        # Reset to normal for time, then switch for items title
         ticket_content += SelectFontA + NormalText + BoldOff 
 
         ticket_content += to_bytes(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
-        ticket_content += BoldOn + to_bytes("ITEMS:\n") + BoldOff # "ITEMS:" title normal size, bold
+        ticket_content += BoldOn + to_bytes("ITEMS:\n") + BoldOff 
         grand_total = 0.0
 
         for item in order_data.get('items', []):
@@ -144,11 +145,8 @@ def print_kitchen_ticket(order_data):
             line_total = item_quantity * item_price_unit
             grand_total += line_total
 
-            # --- Item Name and Quantity Line(s) - Large & Bold with Word Wrap ---
-            ticket_content += SelectFontA + DoubleHeightWidth + BoldOn # Item name is Large & Bold
-            
+            ticket_content += SelectFontA + DoubleHeightWidth + BoldOn
             qty_prefix_str = f"{item_quantity}x "
-            
             width_for_name_on_first_line = EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(qty_prefix_str)
             
             first_line_name_part = ""
@@ -177,61 +175,52 @@ def print_kitchen_ticket(order_data):
                 for line in wrapped_name_lines:
                     ticket_content += to_bytes(indent_str + line.strip() + "\n")
             
-            # --- SELECTED OPTION ---
             selected_option = item.get('selectedOption', '').strip()
             if selected_option:
-                # Switch to DoubleHeight font for the option line, not bold
-                ticket_content += SelectFontA + DoubleHeight + BoldOff # << MODIFIED FONT HERE
-                option_line = f"  Option: {selected_option}" # Indent with 2 spaces
+                ticket_content += SelectFontA + DoubleHeight + BoldOff 
+                option_line = f"  Option: {selected_option}"
                 ticket_content += to_bytes(option_line + "\n")
             
-            # Reset font for subsequent lines like pricing and comments.
             ticket_content += SelectFontA + NormalText + BoldOff 
-            # --- End Item Name / Option ---
-
-            # Line 2: Pricing - Normal Font A, Not Bold, Right Aligned
-            pricing_text = f"({item_quantity} x ${item_price_unit:.2f} = ${line_total:.2f})"
+            
+            pricing_text = f"({item_quantity} x €{item_price_unit:.2f} = €{line_total:.2f})" # Changed $ to €
             padding_pricing = " " * (NORMAL_FONT_LINE_WIDTH - len(pricing_text))
             ticket_content += to_bytes(padding_pricing + pricing_text + "\n")
 
-            # Line 3 (Optional): Item Comment - Font A, Normal Size, Bold, indented
             item_comment = item.get('comment', '').strip()
             if item_comment:
-                # Item comment is NormalText, but Bold
                 ticket_content += BoldOn 
                 ticket_content += to_bytes(f"    Note: {item_comment}\n") 
-                ticket_content += BoldOff # Turn off bold after comment
+                ticket_content += BoldOff
             
             ticket_content += to_bytes("\n") 
 
         ticket_content += to_bytes("-" * NORMAL_FONT_LINE_WIDTH + "\n")
 
-        # TOTAL line - Normal size, Bold
-        ticket_content += SelectFontA + NormalText + BoldOn 
-        total_string = f"TOTAL: ${grand_total:.2f}"
-        padding_total = " " * (NORMAL_FONT_LINE_WIDTH - len(total_string))
+        # TOTAL line - Large and Bold, Right Aligned
+        ticket_content += SelectFontA + DoubleHeightWidth + BoldOn # Make TOTAL larger and bold
+        total_string = f"TOTAL: €{grand_total:.2f}" # Changed $ to €
+        padding_total = " " * (EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(total_string))
+        if padding_total < 0: padding_total = 0 
         ticket_content += to_bytes(padding_total + total_string + "\n")
-        ticket_content += BoldOff # Turn off bold
+        ticket_content += BoldOff 
+        ticket_content += SelectFontA + NormalText # Reset font
 
         ticket_content += to_bytes("-" * NORMAL_FONT_LINE_WIDTH + "\n\n")
 
         universal_comment = order_data.get('universalComment', '').strip()
         if universal_comment:
-            # "ORDER NOTES:" title is NormalText, Bold
             ticket_content += SelectFontA + NormalText + BoldOn 
             ticket_content += to_bytes("ORDER NOTES:\n")
-            ticket_content += BoldOff # Turn off bold for the actual comment text
+            ticket_content += BoldOff 
 
-            # Universal comment text itself is DoubleHeight
-            ticket_content += SelectFontA + DoubleHeight # Ensure Font A, set DoubleHeight
-            
-            # Corrected wrapping for DoubleHeight (normal width)
+            ticket_content += SelectFontA + DoubleHeight 
             max_line_len_comment = NORMAL_FONT_LINE_WIDTH 
             wrapped_universal_comment_lines = word_wrap_text(universal_comment, max_line_len_comment)
             for line in wrapped_universal_comment_lines:
                 ticket_content += to_bytes(line + "\n")
 
-            ticket_content += SelectFontA + NormalText # Reset from DoubleHeight for any following text
+            ticket_content += SelectFontA + NormalText 
             ticket_content += to_bytes("\n")
 
         ticket_content += to_bytes("\n" * 3) 
@@ -253,12 +242,7 @@ def print_kitchen_ticket(order_data):
         print(f"Printing error (ESC/POS): {str(e)}")
         return False
         
-# (The rest of your app.py code: log_order_to_csv, handle_order, Flask routes, if __name__ == '__main__', etc.
-# should remain the same as in the previous complete file version I provided that had these functions.)
-# For completeness, here are the other critical functions assuming they are up-to-date:
-
 def log_order_to_csv(order_data):
-    """Append order to daily CSV file and update total"""
     try:
         os.makedirs(CSV_DIR, exist_ok=True)
         date_str = datetime.now().strftime("%Y-%m-%d")
@@ -281,20 +265,17 @@ def log_order_to_csv(order_data):
 
         new_order_total = sum(item.get('price', 0) * item.get('quantity', 0) for item in order_data.get('items', []))
         
-        # Correctly calculate running total from existing valid rows
         current_running_total_from_csv = 0.0
         for r in existing_rows:
             if r.get('order_number') != 'Total':
                 try:
-                    # Ensure 'total' key exists and is not empty before trying to replace/convert
-                    total_val_str = r.get('total', '0').replace('$', '')
-                    if total_val_str: # Check if string is not empty after stripping $
+                    total_val_str = r.get('total', '0').replace('€', '').replace('$', '') # Handles both € and $ for backward compatibility if needed
+                    if total_val_str:
                          current_running_total_from_csv += float(total_val_str)
                 except ValueError:
                     print(f"Warning: Could not parse total '{r.get('total')}' from CSV row for order {r.get('order_number')}.")
 
         final_running_total = current_running_total_from_csv + new_order_total
-
 
         new_row = {
             'order_number': order_data.get('number', 'N/A'),
@@ -302,11 +283,11 @@ def log_order_to_csv(order_data):
             'items': " | ".join(
                 f"{item.get('quantity', 0)}x {item.get('name', 'N/A')}" +
                 (f" (Note: {item.get('comment','').strip()})" if item.get('comment','').strip() else "") +
-                f" (${item.get('price', 0):.2f})"
+                f" (€{item.get('price', 0):.2f})" # Changed $ to €
                 for item in order_data.get('items', [])
             ),
             'universal_comment': order_data.get('universalComment', '').strip(),
-            'total': f"${new_order_total:.2f}",
+            'total': f"€{new_order_total:.2f}", # Changed $ to €
             'printed': printed_status
         }
         existing_rows.append(new_row)
@@ -318,7 +299,7 @@ def log_order_to_csv(order_data):
             writer.writerow({
                 'order_number': 'Total', 'timestamp': 'End of Day Summary',
                 'items': f"{len(existing_rows)} orders", 
-                'universal_comment': '', 'total': f"${final_running_total:.2f}",
+                'universal_comment': '', 'total': f"€{final_running_total:.2f}", # Changed $ to €
                 'printed': ''
             })
         return True

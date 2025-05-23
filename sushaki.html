@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kitchen Order System</title>
+    <title>To Sushaki - Σύστημα Παραγγελιών</title> 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
+        /* CSS styles remain the same as your previous version */
         /* Base Styles */
         * {
             box-sizing: border-box;
@@ -51,31 +52,29 @@
         /* Numpad Styling - Enhanced for Touch & Width */
 		.numpad {
 			display: grid;
-			grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+			grid-template-columns: repeat(3, 1fr); 
 			gap: 0.75rem;
 			margin-top: 1rem;
-			width: 100%; /* This should make the grid container use full available width */
-			/* Let's ensure its parent doesn't overly constrain it with padding for this specific element */
+			width: 100%; 
 		}
 
 		.numpad button {
-			min-height: 5rem; /* Or even more if they look too narrow, e.g., 5.5rem or 6rem */
-			/* Width is driven by '1fr' in grid-template-columns */
-			padding: 0.5rem; /* Adjust padding if text gets cramped with larger font */
-			border: 1px solid #ddd;
-			background: white;
-			border-radius: 8px;
-			font-size: 2.2rem; /* Try increasing font size even more */
-			font-weight: 500;
-			color: var(--text);
-			cursor: pointer;
-			transition: all 0.15s ease-out;
-			box-shadow: 0 3px 6px rgba(0,0,0,0.08);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			line-height: 1;
-		}
+            min-height: clamp(3.5rem, 12vw, 5rem); 
+            padding: clamp(0.25rem, 1.5vw, 0.5rem); 
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            font-size: clamp(1.4rem, 4.5vw, 2.2rem);
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s ease-out;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
 
 		.numpad button:active {
 			transform: scale(0.96);
@@ -86,7 +85,7 @@
 		.numpad button.numpad-action-btn {
 			background-color: var(--secondary);
 			color: white;
-			font-size: 1.8rem; /* May need adjustment for 'C' or '←' symbols */
+            font-size: clamp(1.2rem, 3.5vw, 1.8rem); 
 		}
 
 		.numpad button.numpad-action-btn:active {
@@ -98,25 +97,23 @@
             width: 66.67%;
 			padding: 1.5rem;
 			overflow-y: auto;
-			height: 100vh; /* Add this to ensure proper height */
+			height: 100vh; 
         }
 
-        /* Category Tabs Container */
 		.category-tabs {
 			display: flex;
 			flex-wrap: wrap;
 			gap: 0.75rem;
 			margin-bottom: 1.5rem;
 			padding-bottom: 1rem;
-			border-bottom: 1px solid #e0e0e0; /* This should add the line */
+			border-bottom: 1px solid #e0e0e0; 
 		}
 
-		/* Individual Category Tab (Pill) - Inactive State */
 		.category-tab {
 			padding: 0.75rem 1.5rem;
-			border: 1px solid #d0d0d0;    /* This should add the border */
+			border: 1px solid #d0d0d0;    
 			border-radius: 24px;
-			background: white;            /* This should make them white */
+			background: white;            
 			color: var(--text);
 			cursor: pointer;
 			font-size: 1rem;
@@ -130,7 +127,6 @@
 			background-color: #f9f9f9;
 		}
 
-		/* Active tab style - make sure this comes AFTER the default .category-tab styles */
 		.category-tab.active {
 			background: var(--primary);
 			color: white;
@@ -162,32 +158,20 @@
         }
 		
 		.product-card h3 {
-			margin-bottom: 0.5rem; /* Add some space between name and price if name is short */
-			/* The following properties enable multi-line ellipsis */
+			margin-bottom: 0.5rem; 
 			display: -webkit-box;
 			-webkit-box-orient: vertical;
-			-webkit-line-clamp: 2; /* Show a maximum of 2 lines */
+			-webkit-line-clamp: 2; 
 			overflow: hidden;
 			text-overflow: ellipsis;
-			/* Fallback for non-WebKit browsers (might only work for single line effectively without JS) */
-			/* For single line ellipsis as a simpler fallback:
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			*/
-			/* We need to ensure h3 can have a height that accommodates two lines */
-			/* The flex properties on .product-card should allow this.
-			   If card min-height is an issue, this might need adjustment.
-			   Let's assume min-height: 6rem on product-card is enough. */
 		}
 
-        /* Order Items */
         .order-item {
 			padding: 0.75rem 0;
 			border-bottom: 1px solid #eee;
 			display: flex;
 			justify-content: space-between;
-			align-items: center; /* ADD THIS LINE for vertical centering */
+			align-items: center; 
 			animation: fadeIn 0.3s ease-out;
 		}
 
@@ -220,7 +204,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Buttons */
         .action-buttons {
             display: flex;
             gap: 0.75rem;
@@ -248,17 +231,16 @@
         }
 		
 		.order-item .secondary-btn {
-			padding: 0.6rem 0.8rem;  /* Makes the button bigger */
-			font-size: 1.2rem;     /* Makes the icon/text inside bigger */
-			min-width: 2.8rem;     /* Ensures a minimum tap width */
-			min-height: 2.8rem;    /* Ensures a minimum tap height */
+			padding: 0.6rem 0.8rem; 
+			font-size: 1.2rem;     
+			min-width: 2.8rem;    
+			min-height: 2.8rem;   
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			margin-left: 0.5rem; /* Keeps a small gap to the left */
+			margin-left: 0.5rem; 
 		}
 
-        /* Utility */
         .price {
             color: var(--primary);
             font-weight: 700;
@@ -272,9 +254,8 @@
             font-weight: 700;
         }
         
-         /* Management Modal Styles */
     .management-modal {
-		display: none; /* Initially hidden, JS will set it to 'flex' */
+		display: none; 
 		position: fixed;
 		top: 0;
 		left: 0;
@@ -283,10 +264,8 @@
 		background: rgba(0,0,0,0.5);
 		z-index: 1000;
 		padding: 2rem;
-		/* These are key for centering its child, .management-content */
 		align-items: center;
 		justify-content: center;
-		/* overflow: hidden; /* Optional: good to prevent overlay scroll if content somehow overflows it */
 	}
 	
 	.management-modal .form-actions button,
@@ -295,15 +274,13 @@
 			font-size: 1rem;
 			font-weight: 500;
 			border-radius: 8px;
-			border: none; /* Ensure no border */
+			border: none; 
 			text-align: center;
-			height: 3rem; /* Explicit height */
-			display: inline-flex; /* For centering content */
+			height: 3rem; 
+			display: inline-flex; 
 			align-items: center;
 			justify-content: center;
-			/* flex-grow: 1; /* Removed */
-			/* Add a min-width if they become too narrow */
-			min-width: 100px; /* Example: Adjust as needed */
+			min-width: 100px; 
 		}
 		
 		#itemOptionSelectModal .form-actions {
@@ -317,7 +294,6 @@
 			margin: 0;
 		}
 
-	/* Ensure the primary and secondary styles are maintained if the above is more specific */
 	.management-modal .form-actions .primary-btn,
 	#itemOptionSelectModal .form-actions .primary-btn {
 		background: var(--primary);
@@ -327,8 +303,8 @@
 
 	.management-modal .form-actions .secondary-btn,
 	#itemOptionSelectModal .form-actions .secondary-btn {
-		background: #ddd; /* Your existing secondary button background */
-		color: var(--text); /* Ensure good contrast if default is not clear */
+		background: #ddd; 
+		color: var(--text); 
 		border: none;
 	}
 
@@ -336,12 +312,12 @@
 		background: white;
 		max-width: 600px;
 		width: 100%;
-		margin: 0; /* IMPORTANT: Let the flex parent handle margins for centering */
+		margin: 0; 
 		border-radius: 8px;
 		padding: 1.5rem;
-		max-height: calc(100vh - 4rem); /* Max height considering modal's top/bottom padding */
-		overflow-y: auto;   /* Makes the content scrollable if it exceeds max-height */
-		display: block;     /* This is fine, or flex; flex-direction: column; */
+		max-height: calc(100vh - 4rem); 
+		overflow-y: auto;   
+		display: block;    
 	}
 
     .management-tabs {
@@ -394,15 +370,15 @@
     }
 	
 	#itemsManagement .item-list {
-		max-height: 300px; /* You can change 300px to a different value if needed */
+		max-height: 300px; 
 		overflow-y: auto;
-		padding-right: 10px; /* Optional: for better spacing with the scrollbar */
+		padding-right: 10px; 
 	}
 	
 	#categoriesManagement .item-list {
-		max-height: 300px; /* You can change 300px to a different value if needed */
+		max-height: 300px; 
 		overflow-y: auto;
-		padding-right: 10px; /* Optional: for better spacing with the scrollbar */
+		padding-right: 10px; 
 	}
 
     .item-row {
@@ -451,7 +427,6 @@
             to { top: 20px; }
         }
         
-        /* Printer-friendly styles */
     @media print {
         body > :not(.print-section) {
             display: none !important;
@@ -462,7 +437,6 @@
         }
     }
 
-    /* Kitchen ticket styling */
     .kitchen-ticket {
         display: none;
         background: white;
@@ -472,16 +446,14 @@
         border: 3px dashed #ccc;
     }
 	
-	/* Management Modal Button Styles */
 		.management-content .primary-btn {
 			padding: 1rem !important;
 			font-size: 1.1rem !important;
 			margin-top: 1rem;
 			height: auto;
-			min-height: 50px; /* Minimum touch target size */
+			min-height: 50px; 
 		}
 
-	/* Form submit buttons */
 		.management-form button {
 			width: 100%;
 			padding: 1rem !important;
@@ -489,14 +461,12 @@
 			margin: 0.5rem 0;
 		}
 
-	/* Edit/Delete buttons in lists */
 		.item-row button {
 			padding: 0.75rem 1rem !important;
 			min-width: 80px;
 			font-size: 1rem !important;
 	}
 
-	/* Make category tabs more touch-friendly */
 		.management-tabs button {
 			padding: 0.75rem 1.5rem !important;
 			font-size: 1rem !important;
@@ -510,64 +480,60 @@
 	}
 
 	.primary-btn:active {
-		background: #c0392b !important; /* Darker shade of your primary color */
+		background: #c0392b !important; 
 	}
 	
 	#existingItems .item-row.editing {
-		background-color: var(--highlight); /* Use your highlight color */
-		border-left: 3px solid var(--primary); /* Add a distinct left border */
-		/* font-weight: 500; /* Optional: make text slightly bolder */
+		background-color: var(--highlight); 
+		border-left: 3px solid var(--primary); 
 	}
 	
 	.options-badge {
-		font-size: 0.65em; /* Small badge */
+		font-size: 0.65em; 
 		font-weight: 500;
-		background-color: var(--secondary); /* Or another subtle color */
+		background-color: var(--secondary); 
 		color: white;
 		padding: 2px 5px;
 		border-radius: 3px;
 		margin-left: 8px;
 		white-space: nowrap;
-		align-self: center; /* Align with the item name if in a flex container */
+		align-self: center; 
 	}
 	
 	.option-pill {
 		display: inline-flex;
 		align-items: center;
-		background-color: var(--secondary); /* Using your secondary color for pills */
+		background-color: var(--secondary); 
 		color: white;
 		padding: 0.4rem 0.8rem;
-		border-radius: 16px; /* Pill shape */
+		border-radius: 16px; 
 		font-size: 0.9em;
-		/* margin-right: 0.5rem; /* Gap is handled by parent flex container */
-		/* margin-bottom: 0.5rem; /* Gap is handled by parent flex container */
 		line-height: 1;
 	}
 
-	.option-pill .remove-option-btn { /* The 'x' button inside the pill */
+	.option-pill .remove-option-btn { 
 		background: none;
 		border: none;
 		color: white;
 		margin-left: 0.6rem;
 		cursor: pointer;
-		font-size: 1.2em; /* Make 'x' a bit larger */
+		font-size: 1.2em; 
 		padding: 0;
-		line-height: 0.5; /* Adjust for better vertical alignment of '×' */
+		line-height: 0.5; 
 		font-weight: bold;
 	}
 
 	.option-pill .remove-option-btn:hover {
-		color: #ffd0d0; /* Light red hover for delete */
+		color: #ffd0d0; 
 	}
     </style>
 </head>
 <body>
-    <!-- Left Panel -->
     <div class="order-panel">
         <div class="order-details">
             <h2>Order #<span id="order-number">1</span></h2>
             <div id="order-items"></div>
-            <div id="order-total" class="text-lg text-bold">Total: $0.00</div>
+            <div id="order-total" class="text-lg text-bold">Total: €0.00</div> 
         </div>
         
         <div class="numpad"> <button onclick="handleNumpad(1)">1</button>
@@ -594,21 +560,17 @@
         </div>
     </div>
 
-    <!-- Right Panel -->
     <div class="menu-panel">
         <div class="category-tabs" id="categories">
-            <!-- Categories will be injected via JS -->
         </div>
         
         <div class="product-grid" id="products">
-            <!-- Products will be injected via JS -->
         </div>
     </div>
     
     <div class="toast" id="toast"></div>
 
     <script>
-        // Initialize with localStorage
 		let menu = {};
         let selectedCategory = null;
         let editingItem = null;
@@ -623,6 +585,7 @@
         const ORDER_NUMBER_KEY = 'dailyOrderNumber';
         const LAST_ORDER_DATE_KEY = 'lastOrderDate';
         let orderNumber; 
+        let currentOrderLineItemCounter = 0; // Counter for unique line item IDs
 
         function getLocalDateStr() {
             const now = new Date();
@@ -732,7 +695,7 @@
                             <h3 title="${item.name}">${item.name}</h3>
                             ${optionsBadgeHTML}
                         </div>
-                        <div class="price">$${item.price.toFixed(2)}</div>
+                        <div class="price">€${item.price.toFixed(2)}</div> 
                     `;
                     card.onclick = () => addToOrder(item.id);
                     productsDiv.appendChild(card);
@@ -757,15 +720,16 @@
             if (menuItem.options && Array.isArray(menuItem.options) && menuItem.options.length > 0) {
                 openItemOptionSelectModal(menuItem);
             } else {
-                const existingOrderItem = currentOrder.find(orderItem => orderItem.id === menuItem.id && !orderItem.selectedOption);
-
-                if (existingOrderItem) {
-                    existingOrderItem.quantity++;
-                } else {
-                    const newOrderItem = { ...menuItem, quantity: 1, comment: "" };
-                    newOrderItem.orderId = String(menuItem.id); 
-                    currentOrder.push(newOrderItem);
-                }
+                // Always add as a new item
+                currentOrderLineItemCounter++;
+                const uniqueLineId = `${menuItem.id}-line-${currentOrderLineItemCounter}`;
+                const newOrderItem = { 
+                    ...menuItem, 
+                    quantity: 1, 
+                    comment: "", 
+                    orderId: uniqueLineId // Use unique ID for this line item
+                };
+                currentOrder.push(newOrderItem);
                 updateOrderDisplay();
             }
         }
@@ -837,24 +801,19 @@
                 return;
             }
             const selectedOptionValue = selectedRadio.value;
-            const orderItemIdWithOption = `${currentItemWithOptions.id}-${selectedOptionValue.replace(/\s+/g, '_')}`;
+            
+            // Always add as a new item
+            currentOrderLineItemCounter++;
+            const uniqueLineId = `${currentItemWithOptions.id}-${selectedOptionValue.replace(/\s+/g, '_')}-line-${currentOrderLineItemCounter}`;
 
-            const existingOrderItem = currentOrder.find(
-                orderItem => orderItem.orderId === orderItemIdWithOption
-            );
-
-            if (existingOrderItem) {
-                existingOrderItem.quantity++;
-            } else {
-                const newOrderItem = { 
-                    ...currentItemWithOptions, 
-                    orderId: orderItemIdWithOption,
-                    quantity: 1, 
-                    comment: "", 
-                    selectedOption: selectedOptionValue 
-                };
-                currentOrder.push(newOrderItem);
-            }
+            const newOrderItem = { 
+                ...currentItemWithOptions, 
+                orderId: uniqueLineId, // Use unique ID for this line item
+                quantity: 1, 
+                comment: "", 
+                selectedOption: selectedOptionValue 
+            };
+            currentOrder.push(newOrderItem);
             updateOrderDisplay();
             cancelOptionSelection();
         }
@@ -865,7 +824,8 @@
             
             currentOrder.forEach(item => {
                 const div = document.createElement('div');
-                const uniqueDisplayId = item.orderId ? String(item.orderId) : String(item.id); 
+                // item.orderId is now guaranteed to be unique for each line item
+                const uniqueDisplayId = String(item.orderId); 
 
                 div.className = `order-item ${uniqueDisplayId === selectedItemId ? 'selected-item' : ''}`;
                 
@@ -880,7 +840,7 @@
                     ${optionDisplayHTML}
                     ${item.comment ? `<div style="font-size: 0.8em; color: #555; margin-left: 10px;"><em>Note: ${item.comment}</em></div>` : ''}
                 </div>
-                <span class="price" style="text-align: right;">$${(item.price * item.quantity).toFixed(2)}</span>
+                <span class="price" style="text-align: right;">€${(item.price * item.quantity).toFixed(2)}</span> 
                 <div class="order-item-actions">
                     <button onclick="event.stopPropagation(); promptForItemComment('${uniqueDisplayId}')" class="secondary-btn" title="Add Note">✎</button> 
                     <button onclick="event.stopPropagation(); removeItemByOrderId('${uniqueDisplayId}')" class="secondary-btn" title="Remove Item">×</button>
@@ -891,24 +851,26 @@
             });
 
             const total = currentOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            document.getElementById('order-total').textContent = `Total: $${total.toFixed(2)}`;
+            document.getElementById('order-total').textContent = `Total: €${total.toFixed(2)}`; 
             
             localStorage.setItem('currentOrder', JSON.stringify(currentOrder));
         }
         
         function selectItemByOrderId(orderId) {
+            // orderId is already unique for the line item
             if (selectedItemId === orderId) {
-                 selectedItemId = orderId; 
-                 numpadInput = "";
+                 // Keep it selected, clear numpad for new input if needed
+                 numpadInput = ""; // Or decide if you want to keep previous input for re-editing
             } else {
                 selectedItemId = orderId;
                 numpadInput = "";    
             }
-            updateOrderDisplay();
+            updateOrderDisplay(); // Re-render to show selection
         }
 
         function removeItemByOrderId(orderId) {
-            currentOrder = currentOrder.filter(item => (item.orderId ? String(item.orderId) : String(item.id)) !== orderId);
+            // orderId is already unique for the line item
+            currentOrder = currentOrder.filter(item => String(item.orderId) !== orderId);
             if (selectedItemId === orderId) { 
                 selectedItemId = null;
                 numpadInput = "";
@@ -917,7 +879,8 @@
         }
 
         function promptForItemComment(orderId) { 
-            const item = currentOrder.find(i => (i.orderId ? String(i.orderId) : String(i.id)) === orderId);
+            // orderId is already unique for the line item
+            const item = currentOrder.find(i => String(i.orderId) === orderId);
             if (item) {
                 const newComment = prompt("Enter note for " + item.name + (item.selectedOption ? ` (${item.selectedOption})` : '') + ":", item.comment || "");
                 if (newComment !== null) { 
@@ -934,14 +897,15 @@
                 numpadInput = ""; 
                 return;
             }
-            const item = currentOrder.find(i => (i.orderId ? String(i.orderId) : String(i.id)) === selectedItemId);
+            // selectedItemId is the unique orderId of the line item
+            const item = currentOrder.find(i => String(i.orderId) === selectedItemId);
             if (!item) {
                 showToast('Error: Selected item not found in order for numpad.');
                 numpadInput = ""; 
                 return;
             }
 
-            if (numpadInput === "0" && String(digit) !== "0") {
+            if (numpadInput === "0" && String(digit) !== "0") { // Avoid leading zero like "05"
                 numpadInput = String(digit);
             } else {
                 numpadInput += String(digit); 
@@ -949,13 +913,13 @@
             
             let newQuantity = Number(numpadInput);
 
-            if (isNaN(newQuantity) || newQuantity <= 0) {
-                item.quantity = 1;
+            if (isNaN(newQuantity) || newQuantity <= 0) { // If input becomes non-numeric or zero
+                item.quantity = 1; // Default to 1
                 if (Number(numpadInput) <=0 && numpadInput !== "0") { 
-                     numpadInput = "1"; 
+                     numpadInput = "1"; // Reset numpad display if it was a non-zero invalid number
                 } else if (numpadInput === "0") {
-                    // Allow "0" to be typed, but quantity will be 1
-                } else {
+                    // Allow "0" to be typed, quantity remains 1 until a valid number is formed
+                } else { // Non-numeric becomes 1
                      numpadInput = "1";
                 }           
             } else {
@@ -969,10 +933,10 @@
                 showToast('Select an item first');
                 return;
             }
-            const item = currentOrder.find(i => (i.orderId ? String(i.orderId) : String(i.id)) === selectedItemId);
+            const item = currentOrder.find(i => String(i.orderId) === selectedItemId);
             if (item) {
                 numpadInput = "";
-                item.quantity = 1;
+                item.quantity = 1; // Reset quantity to 1 on clear
                 showToast('Input cleared. Quantity set to 1.');
                 updateOrderDisplay();
             }
@@ -983,17 +947,16 @@
                 showToast('Select an item first');
                 return;
             }
-            const item = currentOrder.find(i => (i.orderId ? String(i.orderId) : String(i.id)) === selectedItemId);
+            const item = currentOrder.find(i => String(i.orderId) === selectedItemId);
             if (item) {
                 if (numpadInput.length > 0) {
                     numpadInput = numpadInput.slice(0, -1);
                 }
 
-                if (numpadInput === "") {
-                    item.quantity = 1;
+                if (numpadInput === "" || Number(numpadInput) <= 0 || isNaN(Number(numpadInput))) {
+                    item.quantity = 1; // Default to 1 if backspace results in empty or invalid
                 } else {
-                    let newQuantity = Number(numpadInput);
-                    item.quantity = (newQuantity > 0) ? newQuantity : 1;
+                    item.quantity = Number(numpadInput);
                 }
                 updateOrderDisplay();
             }
@@ -1012,6 +975,8 @@
             }
             localStorage.setItem(ORDER_NUMBER_KEY, orderNumber);
             document.getElementById('order-number').textContent = orderNumber;
+            
+            currentOrderLineItemCounter = 0; // Reset line item counter for new order
 
             numpadInput = "";
             selectedItemId = null;
@@ -1096,7 +1061,7 @@
                     (itemsInCat || []).map(item => `
                         <div class="item-row" id="item-row-${item.id}">
                             <span style="flex:1">${item.name}</span>
-                            <span>$${item.price.toFixed(2)}</span>
+                            <span>€${item.price.toFixed(2)}</span> 
                             <button onclick="editItem(${item.id})">Edit</button>
                             <button onclick="deleteItem(${item.id})" class="secondary-btn">Delete</button>
                         </div>`
@@ -1348,14 +1313,13 @@
                 const index = (menu[category] || []).findIndex(i => i.id === itemId);
                 if (index > -1) {
                     menu[category].splice(index, 1);
-                    itemCategory = category; // Remember the category
+                    itemCategory = category; 
                 }
             });
             
-            saveMenuToServer(); // Save changes to backend
-            loadManagementData(); // Reload management list
+            saveMenuToServer(); 
+            loadManagementData(); 
 
-            // Refresh product view if the deleted item was in the selected category
             if (selectedCategory === itemCategory) {
                 showCategory(selectedCategory);
             }
@@ -1372,8 +1336,8 @@
             await saveMenuToServer();
             loadManagementData();
             
-            selectedCategory = categoryName; // Select the new category
-            init(); // Re-render category tabs and product display
+            selectedCategory = categoryName; 
+            init(); 
             showToast(`Category "${categoryName}" added.`);
         }
 
@@ -1392,8 +1356,8 @@
             if (selectedCategory === categoryName) {
                 selectedCategory = Object.keys(menu)[0] || null;
             }
-            init(); // Re-render tabs and products
-            loadManagementData(); // Reload management lists
+            init(); 
+            loadManagementData(); 
             showToast(`Category "${categoryName}" deleted.`);
         }
 
@@ -1409,7 +1373,7 @@
                 managementModal.style.display = 'none';
             }
             if (event.target === optionModal) {
-                cancelOptionSelection(); // Use the specific cancel function for this modal
+                cancelOptionSelection(); 
             }
         }
 
@@ -1468,7 +1432,7 @@
                     <input type="text" id="itemName">
                 </div>
                 <div class="form-group">
-                    <label>Price</label>
+                    <label>Price (€)</label> 
                     <input type="number" step="0.01" id="itemPrice">
                 </div>
                 <div class="form-group">
@@ -1507,7 +1471,6 @@
                 </div>
         </div>
 
-        <!-- Categories Management -->
         <div id="categoriesManagement" style="display: none;">
             <div class="management-form">
                 <div class="form-group">
