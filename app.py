@@ -116,11 +116,18 @@ def print_kitchen_ticket(order_data):
 
         # Restaurant Name - Large and Bold
         ticket_content += SelectFontA + DoubleHeightWidth + BoldOn 
-        restaurant_name = "To Sushaki" # Changed text
-        padding_restaurant = " " * ((EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(restaurant_name)) // 2)
-        if padding_restaurant < 0: padding_restaurant = 0
-        ticket_content += to_bytes(padding_restaurant + restaurant_name + "\n")
-        ticket_content += SelectFontA + NormalText + BoldOff # Reset for "Kitchen Order" header
+        restaurant_name = "To Sushaki"
+        
+        # Calculate the number of spaces for padding
+        num_spaces_restaurant = (EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(restaurant_name)) // 2
+        # Ensure the number of spaces is not negative
+        if num_spaces_restaurant < 0:
+            num_spaces_restaurant = 0
+        # Create the padding string
+        padding_restaurant_str = " " * num_spaces_restaurant
+        
+        ticket_content += to_bytes(padding_restaurant_str + restaurant_name + "\n")
+        ticket_content += SelectFontA + NormalText + BoldOff
 
         header_text = "Kitchen Order"
         padding_header = " " * ((NORMAL_FONT_LINE_WIDTH - len(header_text)) // 2)
@@ -183,7 +190,7 @@ def print_kitchen_ticket(order_data):
             
             ticket_content += SelectFontA + NormalText + BoldOff 
             
-            pricing_text = f"({item_quantity} x €{item_price_unit:.2f} = €{line_total:.2f})" # Changed $ to €
+            pricing_text = f"({item_quantity} x EUR {item_price_unit:.2f} = EUR {line_total:.2f})" # Changed $ to €
             padding_pricing = " " * (NORMAL_FONT_LINE_WIDTH - len(pricing_text))
             ticket_content += to_bytes(padding_pricing + pricing_text + "\n")
 
@@ -199,9 +206,12 @@ def print_kitchen_ticket(order_data):
 
         # TOTAL line - Large and Bold, Right Aligned
         ticket_content += SelectFontA + DoubleHeightWidth + BoldOn # Make TOTAL larger and bold
-        total_string = f"TOTAL: €{grand_total:.2f}" # Changed $ to €
-        padding_total = " " * (EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(total_string))
-        if padding_total < 0: padding_total = 0 
+        total_string = f"TOTAL: EUR {grand_total:.2f}" # Changed $ to euro
+        # FIX: Calculate num_spaces_total as integer first
+        num_spaces_total = EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(total_string)
+        if num_spaces_total < 0: 
+            num_spaces_total = 0 
+        padding_total = " " * num_spaces_total
         ticket_content += to_bytes(padding_total + total_string + "\n")
         ticket_content += BoldOff 
         ticket_content += SelectFontA + NormalText # Reset font
