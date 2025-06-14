@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To Sushaki - Σύστημα Παραγγελιών</title> 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- Added Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* CSS styles remain the same as your previous version */
         /* Base Styles */
@@ -309,16 +311,18 @@
 	}
 
 	.management-content {
-		background: white;
-		max-width: 600px;
-		width: 100%;
-		margin: 0; 
-		border-radius: 8px;
-		padding: 1.5rem;
-		max-height: calc(100vh - 4rem); 
-		overflow-y: auto;   
-		display: block;    
-	}
+        background: white;
+        max-width: 800px; /* MODIFIED: Increased width */
+        width: 100%;
+        margin: 0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        max-height: calc(100vh - 4rem);
+        display: block; /* MODIFIED: Reverted to block */
+        overflow-y: auto; /* MODIFIED: The whole modal scrolls now */
+    }
+
+    /* REMOVED .management-panels-container styles */
 
     .management-tabs {
         display: flex;
@@ -369,13 +373,9 @@
         padding-top: 1rem;
     }
 	
-	#itemsManagement .item-list {
-		max-height: 300px; 
-		overflow-y: auto;
-		padding-right: 10px; 
-	}
-	
-	#categoriesManagement .item-list {
+	#itemsManagement .item-list,
+    #categoriesManagement .item-list,
+    #orderHistoryManagement .item-list {
 		max-height: 300px; 
 		overflow-y: auto;
 		padding-right: 10px; 
@@ -420,6 +420,7 @@
             border-radius: 8px;
             animation: slideDown 0.3s ease-out;
             display: none;
+            z-index: 2000;
         }
 
     @keyframes slideDown {
@@ -577,7 +578,7 @@
         let currentManagementTab = 'items';
         let currentOrder = JSON.parse(localStorage.getItem('currentOrder')) || [];
         let selectedItemId = null; 
-        let tempItemOptions = [];
+        let tempItemOptions = []; // Now stores {name: string, price: number}
         let currentItemWithOptions = null; 
         let numpadInput = "";
         let universalOrderComment = localStorage.getItem('universalOrderComment') || "";
@@ -720,14 +721,14 @@
             if (menuItem.options && Array.isArray(menuItem.options) && menuItem.options.length > 0) {
                 openItemOptionSelectModal(menuItem);
             } else {
-                // Always add as a new item
                 currentOrderLineItemCounter++;
                 const uniqueLineId = `${menuItem.id}-line-${currentOrderLineItemCounter}`;
                 const newOrderItem = { 
                     ...menuItem, 
                     quantity: 1, 
                     comment: "", 
-                    orderId: uniqueLineId // Use unique ID for this line item
+                    orderId: uniqueLineId,
+                    selectedOptions: [] // Ensure property exists and is an array
                 };
                 currentOrder.push(newOrderItem);
                 updateOrderDisplay();
@@ -740,7 +741,7 @@
             const itemNameEl = document.getElementById('optionModalItemName');
             const optionsContainerEl = document.getElementById('optionModalOptionsContainer');
 
-            itemNameEl.textContent = `Select Option for: ${menuItem.name}`;
+            itemNameEl.textContent = `Select Option(s) for: ${menuItem.name}`;
             optionsContainerEl.innerHTML = '';
 
             if (menuItem.options && menuItem.options.length > 0) {
@@ -751,32 +752,34 @@
                     div.style.border = "1px solid #eee";
                     div.style.borderRadius = "4px";
                     div.style.cursor = "pointer";
-                    div.onclick = () => { 
-                        const radioBtn = document.getElementById(optionId);
-                        if(radioBtn) radioBtn.checked = true; 
-                        document.querySelectorAll('#optionModalOptionsContainer div').forEach(d => d.style.borderColor = '#eee');
-                        div.style.borderColor = 'var(--primary)';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox'; // CHANGED from 'radio' to 'checkbox'
+                    checkbox.id = optionId;
+                    checkbox.value = JSON.stringify(option);
+                    
+                    checkbox.onchange = () => {
+                        div.style.borderColor = checkbox.checked ? 'var(--primary)' : '#eee';
                     };
-
-                    const radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = `item_option_for_${menuItem.id}`;
-                    radio.id = optionId;
-                    radio.value = option;
-                    if (index === 0) {
-                        radio.checked = true;
-                        div.style.borderColor = 'var(--primary)';
-                    }
 
                     const label = document.createElement('label');
                     label.htmlFor = optionId;
-                    label.textContent = option;
+                    const priceString = option.price > 0 ? `(+€${option.price.toFixed(2)})` : '';
+                    label.textContent = `${option.name} ${priceString}`;
                     label.style.marginLeft = "0.5rem";
                     label.style.cursor = "pointer";
 
-                    div.appendChild(radio);
+                    div.appendChild(checkbox);
                     div.appendChild(label);
                     optionsContainerEl.appendChild(div);
+
+                    // Make the entire div clickable to toggle the checkbox
+                    div.addEventListener('click', (e) => {
+                        if (e.target !== checkbox) { // Prevent double-toggle if checkbox is clicked directly
+                            checkbox.checked = !checkbox.checked;
+                            checkbox.dispatchEvent(new Event('change')); // Trigger change event for styling
+                        }
+                    });
                 });
             } else {
                 optionsContainerEl.textContent = "No options available for this item.";
@@ -794,24 +797,23 @@
             if (!currentItemWithOptions) return;
 
             const optionsContainerEl = document.getElementById('optionModalOptionsContainer');
-            const selectedRadio = optionsContainerEl.querySelector('input[type="radio"]:checked');
-
-            if (!selectedRadio) {
-                showToast("Please select an option.");
-                return;
-            }
-            const selectedOptionValue = selectedRadio.value;
+            const selectedCheckboxes = optionsContainerEl.querySelectorAll('input[type="checkbox"]:checked');
             
-            // Always add as a new item
+            const selectedOptionsObjects = [];
+            selectedCheckboxes.forEach(checkbox => {
+                selectedOptionsObjects.push(JSON.parse(checkbox.value));
+            });
+            
             currentOrderLineItemCounter++;
-            const uniqueLineId = `${currentItemWithOptions.id}-${selectedOptionValue.replace(/\s+/g, '_')}-line-${currentOrderLineItemCounter}`;
+            const optionNames = selectedOptionsObjects.map(o => o.name.replace(/\s+/g, '_')).join('-');
+            const uniqueLineId = `${currentItemWithOptions.id}-${optionNames || 'no-options'}-line-${currentOrderLineItemCounter}`;
 
             const newOrderItem = { 
                 ...currentItemWithOptions, 
-                orderId: uniqueLineId, // Use unique ID for this line item
+                orderId: uniqueLineId,
                 quantity: 1, 
                 comment: "", 
-                selectedOption: selectedOptionValue 
+                selectedOptions: selectedOptionsObjects // Changed from selectedOption to selectedOptions array
             };
             currentOrder.push(newOrderItem);
             updateOrderDisplay();
@@ -821,18 +823,27 @@
         function updateOrderDisplay() {
             const orderItemsDiv = document.getElementById('order-items');
             orderItemsDiv.innerHTML = '';
+            let grandTotal = 0;
             
             currentOrder.forEach(item => {
                 const div = document.createElement('div');
-                // item.orderId is now guaranteed to be unique for each line item
                 const uniqueDisplayId = String(item.orderId); 
 
                 div.className = `order-item ${uniqueDisplayId === selectedItemId ? 'selected-item' : ''}`;
                 
                 let optionDisplayHTML = '';
-                if (item.selectedOption) {
-                    optionDisplayHTML = `<div style="font-size: 0.8em; color: #777; margin-left: 10px;">↳ ${item.selectedOption}</div>`;
+                let totalOptionsPrice = 0;
+                if (item.selectedOptions && Array.isArray(item.selectedOptions) && item.selectedOptions.length > 0) {
+                    item.selectedOptions.forEach(option => {
+                        const optionPrice = option.price || 0;
+                        totalOptionsPrice += optionPrice;
+                        const priceString = optionPrice > 0 ? ` (+€${optionPrice.toFixed(2)})` : '';
+                        optionDisplayHTML += `<div style="font-size: 0.8em; color: #777; margin-left: 10px;">↳ ${option.name}${priceString}</div>`;
+                    });
                 }
+
+                const totalItemPrice = (item.price + totalOptionsPrice) * item.quantity;
+                grandTotal += totalItemPrice;
 
                 div.innerHTML = `
                 <div style="flex: 1;">
@@ -840,7 +851,7 @@
                     ${optionDisplayHTML}
                     ${item.comment ? `<div style="font-size: 0.8em; color: #555; margin-left: 10px;"><em>Note: ${item.comment}</em></div>` : ''}
                 </div>
-                <span class="price" style="text-align: right;">€${(item.price * item.quantity).toFixed(2)}</span> 
+                <span class="price" style="text-align: right;">€${totalItemPrice.toFixed(2)}</span> 
                 <div class="order-item-actions">
                     <button onclick="event.stopPropagation(); promptForItemComment('${uniqueDisplayId}')" class="secondary-btn" title="Add Note">✎</button> 
                     <button onclick="event.stopPropagation(); removeItemByOrderId('${uniqueDisplayId}')" class="secondary-btn" title="Remove Item">×</button>
@@ -850,26 +861,22 @@
                 orderItemsDiv.appendChild(div);
             });
 
-            const total = currentOrder.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            document.getElementById('order-total').textContent = `Total: €${total.toFixed(2)}`; 
+            document.getElementById('order-total').textContent = `Total: €${grandTotal.toFixed(2)}`; 
             
             localStorage.setItem('currentOrder', JSON.stringify(currentOrder));
         }
         
         function selectItemByOrderId(orderId) {
-            // orderId is already unique for the line item
             if (selectedItemId === orderId) {
-                 // Keep it selected, clear numpad for new input if needed
-                 numpadInput = ""; // Or decide if you want to keep previous input for re-editing
+                 numpadInput = "";
             } else {
                 selectedItemId = orderId;
                 numpadInput = "";    
             }
-            updateOrderDisplay(); // Re-render to show selection
+            updateOrderDisplay();
         }
 
         function removeItemByOrderId(orderId) {
-            // orderId is already unique for the line item
             currentOrder = currentOrder.filter(item => String(item.orderId) !== orderId);
             if (selectedItemId === orderId) { 
                 selectedItemId = null;
@@ -879,10 +886,12 @@
         }
 
         function promptForItemComment(orderId) { 
-            // orderId is already unique for the line item
             const item = currentOrder.find(i => String(i.orderId) === orderId);
             if (item) {
-                const newComment = prompt("Enter note for " + item.name + (item.selectedOption ? ` (${item.selectedOption})` : '') + ":", item.comment || "");
+                const optionNames = (item.selectedOptions && item.selectedOptions.length > 0) 
+                    ? ` (${item.selectedOptions.map(o => o.name).join(', ')})` 
+                    : '';
+                const newComment = prompt("Enter note for " + item.name + optionNames + ":", item.comment || "");
                 if (newComment !== null) { 
                     item.comment = newComment.trim();
                     updateOrderDisplay(); 
@@ -897,7 +906,6 @@
                 numpadInput = ""; 
                 return;
             }
-            // selectedItemId is the unique orderId of the line item
             const item = currentOrder.find(i => String(i.orderId) === selectedItemId);
             if (!item) {
                 showToast('Error: Selected item not found in order for numpad.');
@@ -905,7 +913,7 @@
                 return;
             }
 
-            if (numpadInput === "0" && String(digit) !== "0") { // Avoid leading zero like "05"
+            if (numpadInput === "0" && String(digit) !== "0") {
                 numpadInput = String(digit);
             } else {
                 numpadInput += String(digit); 
@@ -913,13 +921,13 @@
             
             let newQuantity = Number(numpadInput);
 
-            if (isNaN(newQuantity) || newQuantity <= 0) { // If input becomes non-numeric or zero
-                item.quantity = 1; // Default to 1
+            if (isNaN(newQuantity) || newQuantity <= 0) {
+                item.quantity = 1;
                 if (Number(numpadInput) <=0 && numpadInput !== "0") { 
-                     numpadInput = "1"; // Reset numpad display if it was a non-zero invalid number
+                     numpadInput = "1";
                 } else if (numpadInput === "0") {
-                    // Allow "0" to be typed, quantity remains 1 until a valid number is formed
-                } else { // Non-numeric becomes 1
+                    // Allow "0"
+                } else {
                      numpadInput = "1";
                 }           
             } else {
@@ -936,7 +944,7 @@
             const item = currentOrder.find(i => String(i.orderId) === selectedItemId);
             if (item) {
                 numpadInput = "";
-                item.quantity = 1; // Reset quantity to 1 on clear
+                item.quantity = 1;
                 showToast('Input cleared. Quantity set to 1.');
                 updateOrderDisplay();
             }
@@ -954,7 +962,7 @@
                 }
 
                 if (numpadInput === "" || Number(numpadInput) <= 0 || isNaN(Number(numpadInput))) {
-                    item.quantity = 1; // Default to 1 if backspace results in empty or invalid
+                    item.quantity = 1;
                 } else {
                     item.quantity = Number(numpadInput);
                 }
@@ -976,7 +984,7 @@
             localStorage.setItem(ORDER_NUMBER_KEY, orderNumber);
             document.getElementById('order-number').textContent = orderNumber;
             
-            currentOrderLineItemCounter = 0; // Reset line item counter for new order
+            currentOrderLineItemCounter = 0;
 
             numpadInput = "";
             selectedItemId = null;
@@ -1031,20 +1039,26 @@
 
         function switchManagementTab(tab) {
             currentManagementTab = tab;
-            document.querySelectorAll('.management-tab').forEach(t => 
-                t.classList.remove('active'));
+            document.querySelectorAll('.management-tab').forEach(t => t.classList.remove('active'));
             
             const itemsView = document.getElementById('itemsManagement');
             const categoriesView = document.getElementById('categoriesManagement');
+            const orderHistoryView = document.getElementById('orderHistoryManagement');
             const clickedTabButton = event.target;
+
+            if(itemsView) itemsView.style.display = 'none';
+            if(categoriesView) categoriesView.style.display = 'none';
+            if(orderHistoryView) orderHistoryView.style.display = 'none';
 
             if (tab === 'items') {
                 if(itemsView) itemsView.style.display = 'block';
-                if(categoriesView) categoriesView.style.display = 'none';
-            } else {
-                if(itemsView) itemsView.style.display = 'none';
+            } else if (tab === 'categories') {
                 if(categoriesView) categoriesView.style.display = 'block';
+            } else if (tab === 'orderHistory') {
+                if(orderHistoryView) orderHistoryView.style.display = 'block';
+                loadTodaysOrders();
             }
+
             if(clickedTabButton) clickedTabButton.classList.add('active');
         }
 
@@ -1087,13 +1101,18 @@
         
         function addOptionToItemFormTemp() {
             const newOptionNameInput = document.getElementById('newOptionNameInput');
+            const newOptionPriceInput = document.getElementById('newOptionPriceInput');
+            
             const optionName = newOptionNameInput.value.trim();
-            if (optionName && !tempItemOptions.includes(optionName)) {
-                tempItemOptions.push(optionName);
+            const optionPrice = parseFloat(newOptionPriceInput.value) || 0;
+
+            if (optionName && !tempItemOptions.some(o => o.name === optionName)) {
+                tempItemOptions.push({ name: optionName, price: optionPrice });
                 renderTemporaryOptionsList();
                 newOptionNameInput.value = '';
-            } else if (tempItemOptions.includes(optionName)) {
-                showToast('Option already exists.');
+                newOptionPriceInput.value = '';
+            } else if (tempItemOptions.some(o => o.name === optionName)) {
+                showToast('Option name already exists.');
             } else if (!optionName) {
                 showToast('Option name cannot be empty.');
             }
@@ -1108,26 +1127,27 @@
                 return;
             }
 
-            tempItemOptions.forEach(optName => {
+            tempItemOptions.forEach(opt => {
                 const pillSpan = document.createElement('span');
                 pillSpan.className = 'option-pill';
-                pillSpan.textContent = optName;
+                const priceString = opt.price > 0 ? ` (+€${opt.price.toFixed(2)})` : '';
+                pillSpan.textContent = `${opt.name}${priceString}`;
 
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-option-btn';
                 removeBtn.innerHTML = '&times;';
-                removeBtn.title = `Remove option: ${optName}`;
+                removeBtn.title = `Remove option: ${opt.name}`;
                 removeBtn.onclick = (event) => {
                     event.stopPropagation(); 
-                    removeTemporaryOption(optName);
+                    removeTemporaryOption(opt.name);
                 };
                 pillSpan.appendChild(removeBtn);
                 listDisplay.appendChild(pillSpan);
             });
         }
 
-        function removeTemporaryOption(optionName) {
-            tempItemOptions = tempItemOptions.filter(opt => opt !== optionName);
+        function removeTemporaryOption(optionNameToRemove) {
+            tempItemOptions = tempItemOptions.filter(opt => opt.name !== optionNameToRemove);
             renderTemporaryOptionsList();
         }
 
@@ -1139,8 +1159,8 @@
                 if (!hasOptionsCheckbox.checked) {
                     tempItemOptions = [];
                     renderTemporaryOptionsList(); 
-                    const newOptionNameInput = document.getElementById('newOptionNameInput');
-                    if (newOptionNameInput) newOptionNameInput.value = '';
+                    document.getElementById('newOptionNameInput').value = '';
+                    document.getElementById('newOptionPriceInput').value = '';
                 } else {
                     if (tempItemOptions.length === 0) {
                         renderTemporaryOptionsList();
@@ -1150,15 +1170,11 @@
         }
 
         function clearItemForm() {
-            const itemName = document.getElementById('itemName');
-            const itemPrice = document.getElementById('itemPrice');
-            const itemId = document.getElementById('itemId');
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('itemId').value = ''; 
             const itemCategory = document.getElementById('itemCategory');
-
-            if(itemName) itemName.value = '';
-            if(itemPrice) itemPrice.value = '';
-            if(itemId) itemId.value = ''; 
-            if(itemCategory && itemCategory.options.length > 0) {
+            if (itemCategory && itemCategory.options.length > 0) {
                 itemCategory.selectedIndex = 0; 
             }
         }
@@ -1171,11 +1187,8 @@
                 row.classList.remove('editing');
             });
 
-            const saveBtn = document.getElementById('saveItemBtn');
-            if (saveBtn) saveBtn.innerHTML = '💾 SAVE ITEM';
-            
-            const cancelBtn = document.getElementById('cancelEditBtn');
-            if (cancelBtn) cancelBtn.style.display = 'none';
+            document.getElementById('saveItemBtn').innerHTML = '💾 SAVE ITEM';
+            document.getElementById('cancelEditBtn').style.display = 'none';
 
             const hasOptionsCheckbox = document.getElementById('itemHasOptions');
             if (hasOptionsCheckbox) {
@@ -1208,7 +1221,7 @@
                 const hasOptionsCheckbox = document.getElementById('itemHasOptions');
                 if (foundItem.options && Array.isArray(foundItem.options) && foundItem.options.length > 0) {
                     hasOptionsCheckbox.checked = true;
-                    tempItemOptions = [...foundItem.options]; 
+                    tempItemOptions = JSON.parse(JSON.stringify(foundItem.options)); // Deep copy
                 } else {
                     hasOptionsCheckbox.checked = false;
                     tempItemOptions = []; 
@@ -1231,9 +1244,8 @@
         }
         
         async function saveItem() {
-            const itemIdValue = document.getElementById('itemId').value;
             const itemData = {
-                id: editingItem ? editingItem.id : (itemIdValue ? parseInt(itemIdValue) : generateItemId()),
+                id: editingItem ? editingItem.id : (document.getElementById('itemId').value ? parseInt(document.getElementById('itemId').value) : generateItemId()),
                 name: document.getElementById('itemName').value.trim(),
                 price: Number(document.getElementById('itemPrice').value),
                 category: document.getElementById('itemCategory').value
@@ -1387,17 +1399,111 @@
         function printKitchenTicket() { 
             const ticketDiv = document.getElementById('kitchenTicket');
             document.getElementById('ticket-number').textContent = orderNumber;
-            document.getElementById('ticket-items').innerHTML = currentOrder.map(item =>
-                `<div>${item.quantity}x ${item.name}` +
-                (item.selectedOption ? ` (${item.selectedOption})` : '') +
-                `${item.comment ? ` <small><em>(${item.comment})</em></small>` : ''}</div>`
-            ).join('');
+            document.getElementById('ticket-items').innerHTML = currentOrder.map(item => {
+                const optionNames = (item.selectedOptions && item.selectedOptions.length > 0) 
+                    ? ` (${item.selectedOptions.map(o => o.name).join(', ')})` 
+                    : '';
+                return `<div>${item.quantity}x ${item.name}${optionNames}${item.comment ? ` <small><em>(${item.comment})</em></small>` : ''}</div>`
+            }).join('');
 
             const notesContentEl = document.getElementById('ticket-notes-content');
             if (notesContentEl) {
                 notesContentEl.textContent = universalOrderComment || "None";
             }
         }
+
+        // --- NEW: Order History Functions ---
+        async function loadTodaysOrders() {
+            const listEl = document.getElementById('todaysOrdersList');
+            if (!listEl) return;
+            listEl.innerHTML = '<p><em>Loading today\'s orders...</em></p>';
+            try {
+                const response = await fetch('/api/todays_orders_for_reprint');
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+                    throw new Error(errorData.message || `Failed to load orders: ${response.statusText}`);
+                }
+                const orders = await response.json();
+                renderTodaysOrdersList(orders);
+            } catch (error) {
+                console.error("Error loading today's orders:", error);
+                listEl.innerHTML = `<p style="color: red;"><em>Error loading orders: ${error.message}. Try refreshing.</em></p>`;
+                showToast(`Error loading orders: ${error.message}`);
+            }
+        }
+
+        function renderTodaysOrdersList(orders) {
+            const listEl = document.getElementById('todaysOrdersList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            if (!orders || orders.length === 0) {
+                listEl.innerHTML = '<p><em>No orders found for today.</em></p>';
+                return;
+            }
+
+            orders.forEach(order => {
+                const row = document.createElement('div');
+                row.className = 'item-row';
+                
+                let formattedTimestamp = order.timestamp;
+                try {
+                    const dateObj = new Date(order.timestamp);
+                    if (!isNaN(dateObj)) {
+                         formattedTimestamp = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }
+                } catch(e) { /* keep original if parsing fails */ }
+
+                row.innerHTML = `
+                    <span style="flex:1">
+                        <strong>Order #${order.order_number}</strong>
+                        <span style="font-size: 0.8em; color: #555; margin-left: 8px;">Table: ${order.table_number || 'N/A'} at ${formattedTimestamp}</span>
+                    </span>
+                    <button onclick="reprintOrder('${order.order_number}', event)" class="primary-btn">
+                        <i class="fas fa-print"></i> Reprint
+                    </button>
+                `;
+                listEl.appendChild(row);
+            });
+        }
+
+        async function reprintOrder(orderNumToReprint, event) {
+            if (!orderNumToReprint) {
+                showToast('Invalid order number for reprint.');
+                return;
+            }
+
+            const reprintButton = event.target.closest('button');
+            if (reprintButton) {
+                reprintButton.disabled = true;
+                reprintButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Printing...';
+            }
+
+            try {
+                const response = await fetch('/api/reprint_order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order_number: orderNumToReprint })
+                });
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast(result.message || `Order #${orderNumToReprint} REPRINTED successfully!`);
+                } else {
+                     showToast(result.message || `Server error during reprint of Order #${orderNumToReprint}: ${response.status}.`);
+                }
+            } catch (error) {
+                console.error(`Error reprinting order ${orderNumToReprint}:`, error);
+                showToast(`Network error while reprinting Order #${orderNumToReprint}.`);
+            } finally {
+                 if (reprintButton) {
+                    reprintButton.disabled = false;
+                    reprintButton.innerHTML = '<i class="fas fa-print"></i> Reprint';
+                }
+            }
+        }
+
+        // --- END: Order History Functions ---
 
         initializeOrderNumberAndDate();
         loadMenu();
@@ -1407,8 +1513,8 @@
 	
 	<div id="itemOptionSelectModal" class="management-modal" style="display: none;">
     <div class="management-content" style="max-width: 450px;"> 
-        <h3 id="optionModalItemName" style="margin-bottom: 0.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">Select Option</h3>
-        <p id="optionModalItemDescription" style="margin-bottom: 1rem; font-size: 0.9em; color: #555;">Please choose an option for the selected item:</p>
+        <h3 id="optionModalItemName" style="margin-bottom: 0.5rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">Select Option(s)</h3>
+        <p id="optionModalItemDescription" style="margin-bottom: 1rem; font-size: 0.9em; color: #555;">Please choose one or more options for the selected item:</p>
         <div id="optionModalOptionsContainer" style="margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
         </div>
         <div class="form-actions" style="display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; margin-top: 1rem;">
@@ -1423,16 +1529,18 @@
         <div class="management-tabs">
             <button class="management-tab active" onclick="switchManagementTab('items')">Manage Items</button>
             <button class="management-tab" onclick="switchManagementTab('categories')">Manage Categories</button>
+            <button class="management-tab" onclick="switchManagementTab('orderHistory')">Order History</button>
         </div>
 
-         <div id="itemsManagement">
+        <!-- REMOVED WRAPPER for scrollable content -->
+        <div id="itemsManagement">
             <div class="management-form">
                 <div class="form-group">
                     <label>Item Name</label>
                     <input type="text" id="itemName">
                 </div>
                 <div class="form-group">
-                    <label>Price (€)</label> 
+                    <label>Base Price (€)</label> 
                     <input type="number" step="0.01" id="itemPrice">
                 </div>
                 <div class="form-group">
@@ -1449,11 +1557,12 @@
 
                 <div id="itemOptionsContainer" style="display:none; border: 1px dashed #ccc; padding: 1rem; border-radius: 4px; display: grid; gap: 1rem;">
                     <div class="form-group">
-                        <label>Define Option Names (Pills):</label>
+                        <label>Define Option Names & Prices (Pills):</label>
                         <div id="itemOptionsListDisplay" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; padding: 0.5rem; border: 1px solid #eee; min-height: 40px; border-radius: 4px;">
                         </div>
-                        <div style="display:flex; gap:0.5rem; margin-top:0.25rem;">
-                            <input type="text" id="newOptionNameInput" placeholder="Option name (e.g., Spicy)" style="flex:1;">
+                        <div style="display:grid; grid-template-columns: 2fr 1fr auto; gap:0.5rem; margin-top:0.25rem;">
+                            <input type="text" id="newOptionNameInput" placeholder="Option name (e.g., Spicy)">
+                            <input type="number" id="newOptionPriceInput" placeholder="Price (€)" step="0.01">
                             <button type="button" class="secondary-btn" onclick="addOptionToItemFormTemp()" style="padding: 0.75rem 1rem !important; margin:0 !important; width:auto !important; height:auto !important; min-height:auto !important; font-size: 0.9rem !important;">Add</button>
                         </div>
                     </div>
@@ -1478,11 +1587,20 @@
                     <input type="text" id="categoryName">
                 </div>
                 <button class="primary-btn" onclick="saveCategory()" style="padding: 1rem; font-size: 1.1rem;">
-					📁 SAVE CATEGORY
-				</button>
+                    📁 SAVE CATEGORY
+                </button>
             </div>
             
             <div class="item-list" id="existingCategories"></div>
+        </div>
+        
+        <div id="orderHistoryManagement" style="display: none;">
+            <h3 style="font-size: 1.2rem; font-weight: 500; margin-bottom: 1rem;">Today's Orders</h3>
+            <button class="primary-btn" onclick="loadTodaysOrders()" style="margin-bottom: 1rem; width: auto; padding: 0.75rem 1.5rem; font-size: 1rem;">
+                <i class="fas fa-sync-alt" style="margin-right: 8px;"></i> Refresh List
+            </button>
+            <div class="item-list" id="todaysOrdersList">
+            </div>
         </div>
         
         <div id="kitchenTicket" class="kitchen-ticket print-section">
