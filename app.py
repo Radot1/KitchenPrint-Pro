@@ -21,20 +21,23 @@ PRINTER_NAME = "80mm Series Printer"
 CSV_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 MENU_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data/menu.json')
 
-# --- ESC/POS Commands ---
+# --- ESC/POS Commands (Updated to match app DUMMY.py for more formatting options) ---
 ESC = b'\x1B'
 GS = b'\x1D'
 
 InitializePrinter = ESC + b'@'
 BoldOn = ESC + b'E\x01'
-BoldOff = b'E\x00'
-DoubleHeightWidth = GS + b'!\x11' # For item name, restaurant name, and total
-DoubleHeight = GS + b'!\x01'    # Proposed for option text, used for universal comment
-NormalText = GS + b'!\x00'      # For pricing, etc.
-SelectFontA = ESC + b'M\x00'
-FullCut = GS + b'V\x00'
-AlignCenter = ESC + b'a\x01'
+BoldOff = ESC + b'E\x00'
+DoubleHeightWidth = GS + b'!\x11'  # Double Height and Double Width
+DoubleHeight = GS + b'!\x01'       # Double Height only
+DoubleWidth = GS + b'!\x10'        # Double Width only
+NormalText = GS + b'!\x00'
 AlignLeft = ESC + b'a\x00'
+AlignCenter = ESC + b'a\x01'
+AlignRight = ESC + b'a\x02'
+SelectFontA = ESC + b'M\x00' # Standard Font A
+SelectFontB = ESC + b'M\x01' # Smaller Font B
+FullCut = GS + b'V\x00'
 
 
 def to_bytes(s, encoding='cp437'):
@@ -42,48 +45,60 @@ def to_bytes(s, encoding='cp437'):
         return s
     return s.encode(encoding, errors='replace')
 
-# --- Word Wrap Helper Function (Unchanged) ---
-def word_wrap_text(text, max_width):
+# --- Word Wrap Helper Function (Updated to match app DUMMY.py for better wrapping) ---
+def word_wrap_text(text, max_width, initial_indent="", subsequent_indent=""):
     lines = []
-    if not text:
-        return lines
+    if not text: return lines
     
-    current_line = []
-    current_length = 0
+    paragraphs = text.split('\n')
     
-    for word in text.split(' '):
-        if not word:
+    for i, paragraph_text in enumerate(paragraphs):
+        if not paragraph_text.strip() and i < len(paragraphs) -1 : 
+            lines.append(initial_indent if not lines else subsequent_indent) 
             continue
 
-        if not current_line and len(word) > max_width:
-            start = 0
-            while start < len(word):
-                lines.append(word[start:start+max_width])
-                start += max_width
-            continue
+        current_line = []
+        current_length = 0
+        words = paragraph_text.split(' ')
+        
+        current_indent = initial_indent if not lines and not any(lines) else subsequent_indent
+        
+        for word_idx, word in enumerate(words):
+            if not word: 
+                if current_line: current_line.append("") 
+                continue
 
-        if current_length + len(word) + (1 if current_line else 0) <= max_width:
-            current_line.append(word)
-            current_length += len(word) + (1 if len(current_line) > 1 else 0)
-        else:
-            if current_line:
-                lines.append(" ".join(current_line))
-            
-            if len(word) > max_width:
-                start = 0
-                while start < len(word):
-                    lines.append(word[start:start+max_width])
-                    start += max_width
+            available_width_for_word = max_width - len(current_indent) - current_length - (1 if current_line else 0)
+            if len(word) > available_width_for_word and not current_line : 
+                part_fits = word[:available_width_for_word]
+                remaining_part = word[available_width_for_word:]
+                lines.append(current_indent + part_fits)
+                
+                while remaining_part:
+                    available_width_for_remaining = max_width - len(subsequent_indent)
+                    part_fits = remaining_part[:available_width_for_remaining]
+                    remaining_part = remaining_part[available_width_for_remaining:]
+                    lines.append(subsequent_indent + part_fits)
                 current_line = []
                 current_length = 0
+                current_indent = subsequent_indent 
+                continue
+
+            if current_length + len(word) + (1 if current_line else 0) <= (max_width - len(current_indent)):
+                current_line.append(word)
+                current_length += len(word) + (1 if len(current_line) > 1 else 0) 
             else:
+                if current_line: 
+                    lines.append(current_indent + " ".join(current_line))
+                
                 current_line = [word]
                 current_length = len(word)
-            
-    if current_line:
-        lines.append(" ".join(current_line))
+                current_indent = subsequent_indent 
         
-    return lines if lines else [""]
+        if current_line: 
+            lines.append(current_indent + " ".join(current_line))
+            
+    return lines if lines else [initial_indent]
 
 @app.route('/')
 def serve_index():
@@ -105,50 +120,50 @@ def save_menu():
         json.dump(new_menu_data, f, indent=2)
     return jsonify({"status": "success"})
 
+# --- THIS IS THE MAIN MODIFIED FUNCTION ---
 def print_kitchen_ticket(order_data, copy_info="", original_timestamp_str=None):
+    hprinter = None
     try:
         ticket_content = bytearray()
         ticket_content += InitializePrinter
         
         NORMAL_FONT_LINE_WIDTH = 42
-        EFFECTIVE_LARGE_FONT_LINE_WIDTH = NORMAL_FONT_LINE_WIDTH // 2
+        SMALL_FONT_LINE_WIDTH = 56 
 
-        ticket_content += AlignCenter
-        ticket_content += SelectFontA + DoubleHeightWidth + BoldOn 
-        restaurant_name = "To Sushaki"
+        # --- Header Section (As per app DUMMY.py) ---
+        ticket_content += AlignCenter + SelectFontA + DoubleHeightWidth + BoldOn
+        restaurant_name = "To Sushaki" 
         ticket_content += to_bytes(restaurant_name + "\n")
-
-        # Display copy information (e.g., "Reprint")
-        if copy_info:
-            ticket_content += SelectFontA + NormalText + BoldOn
-            ticket_content += to_bytes(f"--- {copy_info.upper()} ---\n")
-            ticket_content += BoldOff
-
-        ticket_content += SelectFontA + NormalText + BoldOff
+        ticket_content += BoldOff 
+        
+        ticket_content += AlignCenter + SelectFontA + NormalText
         header_text = "Kitchen Order"
+        if copy_info:
+             header_text += f" - {copy_info.upper()}"
         ticket_content += to_bytes(header_text + "\n")
-        ticket_content += AlignLeft
-        ticket_content += to_bytes("-" * NORMAL_FONT_LINE_WIDTH + "\n")
-
-        ticket_content += SelectFontA + DoubleHeightWidth + BoldOn 
+        
+        ticket_content += AlignLeft 
+        
+        ticket_content += SelectFontA + DoubleHeightWidth + BoldOn
         order_num_text = f"Order #: {order_data.get('number', 'N/A')}"
         ticket_content += to_bytes(order_num_text + "\n")
-        ticket_content += SelectFontA + NormalText + BoldOff 
+        ticket_content += BoldOff
 
+        ticket_content += SelectFontA + NormalText
         time_to_display = original_timestamp_str if original_timestamp_str else datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        ticket_content += to_bytes(f"Time: {time_to_display}\n\n")
-
-        ticket_content += BoldOn + to_bytes("ITEMS:\n") + BoldOff 
+        ticket_content += to_bytes(f"Time: {time_to_display}\n")
+        
+        ticket_content += to_bytes("-" * NORMAL_FONT_LINE_WIDTH + "\n")
+        
+        # --- Items Section (Logic from app DUMMY.py) ---
         grand_total = 0.0
-
-        for item in order_data.get('items', []):
+        for item_idx, item in enumerate(order_data.get('items', [])):
             item_quantity = item.get('quantity', 0)
             item_name_orig = item.get('name', 'Unknown Item')
-            item_price_unit = item.get('price', 0.0)
+            item_price_unit = float(item.get('price', 0.0))
             
             selected_options = item.get('selectedOptions', [])
             total_options_price = 0.0
-            
             if selected_options and isinstance(selected_options, list):
                 for option in selected_options:
                     total_options_price += float(option.get('price', 0.0))
@@ -156,94 +171,104 @@ def print_kitchen_ticket(order_data, copy_info="", original_timestamp_str=None):
             line_total = item_quantity * (item_price_unit + total_options_price)
             grand_total += line_total
 
-            ticket_content += SelectFontA + DoubleHeightWidth + BoldOn
-            qty_prefix_str = f"{item_quantity}x "
-            width_for_name_on_first_line = EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(qty_prefix_str)
+            left_side = f"{item_quantity}x {item_name_orig}"
+            right_side = f"EUR {line_total:.2f}"
+
+            large_text_width = len(left_side) * 2
+            normal_text_width = len(right_side)
             
-            first_line_name_part = ""
-            remaining_name_for_wrap = item_name_orig
-            if len(item_name_orig) <= width_for_name_on_first_line:
-                first_line_name_part = item_name_orig
-                remaining_name_for_wrap = ""
+            # Smartly print large item name and normal price on the same line if it fits
+            if large_text_width + normal_text_width < NORMAL_FONT_LINE_WIDTH:
+                ticket_content += SelectFontA + DoubleHeightWidth + BoldOn
+                ticket_content += to_bytes(left_side)
+                
+                ticket_content += NormalText + BoldOff
+                
+                padding_size = NORMAL_FONT_LINE_WIDTH - large_text_width - normal_text_width
+                padding = " " * padding_size
+                ticket_content += to_bytes(padding)
+                
+                ticket_content += to_bytes(right_side + "\n")
             else:
-                temp_first_part = item_name_orig[:width_for_name_on_first_line + 1] 
-                wrap_at = temp_first_part.rfind(' ')
-                if wrap_at > 0: 
-                    first_line_name_part = item_name_orig[:wrap_at]
-                    remaining_name_for_wrap = item_name_orig[wrap_at+1:]
-                else: 
-                    first_line_name_part = item_name_orig[:width_for_name_on_first_line]
-                    remaining_name_for_wrap = item_name_orig[width_for_name_on_first_line:]
-            
-            ticket_content += to_bytes(qty_prefix_str + first_line_name_part.strip() + "\n")
+                # Handle multi-line items if they don't fit
+                ticket_content += SelectFontA + DoubleHeightWidth + BoldOn
+                DOUBLE_WIDTH_LINE_CHARS = NORMAL_FONT_LINE_WIDTH // 2
+                wrapped_name_lines = word_wrap_text(left_side, DOUBLE_WIDTH_LINE_CHARS)
+                
+                for line in wrapped_name_lines[:-1]:
+                    ticket_content += to_bytes(line + "\n")
+                
+                last_line = wrapped_name_lines[-1]
+                last_line_width = len(last_line) * 2
+                
+                available_space = NORMAL_FONT_LINE_WIDTH - last_line_width
+                padding = " " * max(0, available_space - normal_text_width)
+                
+                ticket_content += to_bytes(last_line)
+                
+                ticket_content += NormalText + BoldOff + to_bytes(padding + right_side + "\n")
+                ticket_content += AlignLeft
 
-            if remaining_name_for_wrap.strip():
-                indent_str = " " * len(qty_prefix_str) 
-                sub_lines_max_width = EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(indent_str)
-                wrapped_name_lines = word_wrap_text(remaining_name_for_wrap.strip(), sub_lines_max_width)
-                for line in wrapped_name_lines:
-                    ticket_content += to_bytes(indent_str + line.strip() + "\n")
-            
+            ticket_content += NormalText + BoldOff 
+
+            # Print selected options (indented)
             if selected_options and isinstance(selected_options, list):
-                ticket_content += SelectFontA + DoubleHeight + BoldOff 
                 for option in selected_options:
-                    option_name = option.get('name', '')
+                    option_name = option.get('name', 'N/A')
                     option_price = float(option.get('price', 0.0))
-                    price_str = f" (+EUR {option_price:.2f})" if option_price > 0 else ""
-                    option_line = f"  -> {option_name}{price_str}"
-                    ticket_content += to_bytes(option_line + "\n")
-            
-            ticket_content += SelectFontA + NormalText + BoldOff 
-            
-            pricing_text = f"({item_quantity} x EUR {(item_price_unit + total_options_price):.2f} = EUR {line_total:.2f})"
-            padding_pricing = " " * (NORMAL_FONT_LINE_WIDTH - len(pricing_text))
-            ticket_content += to_bytes(padding_pricing + pricing_text + "\n")
+                    price_change_str = ""
+                    if option_price != 0:
+                        price_change_str = f" ({'+' if option_price > 0 else ''}EUR {option_price:.2f})"
+                    
+                    option_line = f"  -> {option_name}{price_change_str}"
+                    wrapped_option_lines = word_wrap_text(option_line, NORMAL_FONT_LINE_WIDTH, initial_indent="  ", subsequent_indent="    ") 
+                    for opt_line_part in wrapped_option_lines:
+                        ticket_content += to_bytes(opt_line_part + "\n")
 
+            # Print item comment (indented)
             item_comment = item.get('comment', '').strip()
             if item_comment:
-                ticket_content += BoldOn 
-                ticket_content += to_bytes(f"    Note: {item_comment}\n") 
-                ticket_content += BoldOff
+                ticket_content += BoldOn
+                wrapped_comments = word_wrap_text(f"Note: {item_comment}", NORMAL_FONT_LINE_WIDTH, initial_indent="    ", subsequent_indent="    ")
+                for comment_line in wrapped_comments:
+                     ticket_content += to_bytes(comment_line + "\n")
+                ticket_content += BoldOff                  
             
-            ticket_content += to_bytes("\n") 
+            # Add a separator between items
+            if item_idx < len(order_data.get('items', [])) - 1:
+                ticket_content += to_bytes("." * NORMAL_FONT_LINE_WIDTH + "\n")
 
+        # --- Footer Section (As per app DUMMY.py) ---
         ticket_content += to_bytes("-" * NORMAL_FONT_LINE_WIDTH + "\n")
-
-        ticket_content += SelectFontA + DoubleHeightWidth + BoldOn
+        ticket_content += SelectFontA + DoubleHeightWidth + BoldOn + AlignRight
         total_string = f"TOTAL: EUR {grand_total:.2f}"
-        num_spaces_total = EFFECTIVE_LARGE_FONT_LINE_WIDTH - len(total_string)
-        if num_spaces_total < 0: num_spaces_total = 0 
-        padding_total = " " * num_spaces_total
-        ticket_content += to_bytes(padding_total + total_string + "\n")
-        ticket_content += BoldOff 
+        ticket_content += to_bytes(total_string + "\n")
+        ticket_content += BoldOff + AlignLeft
+        
         ticket_content += SelectFontA + NormalText
-
-        ticket_content += to_bytes("-" * NORMAL_FONT_LINE_WIDTH + "\n\n")
-
+        ticket_content += to_bytes("-" * NORMAL_FONT_LINE_WIDTH + "\n\n") 
+        
         universal_comment = order_data.get('universalComment', '').strip()
         if universal_comment:
             ticket_content += SelectFontA + NormalText + BoldOn 
-            ticket_content += to_bytes("ORDER NOTES:\n")
-            ticket_content += BoldOff 
-            ticket_content += SelectFontA + DoubleHeight 
-            wrapped_universal_comment_lines = word_wrap_text(universal_comment, NORMAL_FONT_LINE_WIDTH)
+            ticket_content += to_bytes("ORDER NOTES:\n") + BoldOff 
+            ticket_content += SelectFontA + NormalText 
+            wrapped_universal_comment_lines = word_wrap_text(universal_comment, NORMAL_FONT_LINE_WIDTH, initial_indent="", subsequent_indent="") 
             for line in wrapped_universal_comment_lines:
                 ticket_content += to_bytes(line + "\n")
-            ticket_content += SelectFontA + NormalText 
             ticket_content += to_bytes("\n")
         
-        # --- MODIFICATION START: Add disclaimer ---
-        ticket_content += AlignCenter
-        ticket_content += SelectFontA + NormalText + BoldOff
+        ticket_content += to_bytes("\n")
+        ticket_content += AlignCenter + SelectFontB
         disclaimer_text = "This is not a legal receipt and is for informational purposes only."
-        wrapped_disclaimer = word_wrap_text(disclaimer_text, NORMAL_FONT_LINE_WIDTH)
-        for line in wrapped_disclaimer:
+        wrapped_disclaimer_lines = word_wrap_text(disclaimer_text, SMALL_FONT_LINE_WIDTH)
+        for line in wrapped_disclaimer_lines:
             ticket_content += to_bytes(line + "\n")
-        ticket_content += AlignLeft
-        # --- MODIFICATION END ---
 
-        ticket_content += to_bytes("\n" * 3) 
-        ticket_content += FullCut 
+        ticket_content += SelectFontA + AlignLeft
+            
+        ticket_content += to_bytes("\n\n\n\n") 
+        ticket_content += FullCut
 
         hprinter = win32print.OpenPrinter(PRINTER_NAME)
         try:
@@ -260,6 +285,8 @@ def print_kitchen_ticket(order_data, copy_info="", original_timestamp_str=None):
 
     except Exception as e:
         app.logger.error(f"Printing error (ESC/POS): {str(e)}")
+        if hprinter:
+             win32print.ClosePrinter(hprinter)
         return False
         
 def log_order_to_csv(order_data):
@@ -273,12 +300,11 @@ def log_order_to_csv(order_data):
             'universal_comment', 'order_total', 'printed_status', 'items_json'
         ]
 
-        # --- MODIFICATION START ---
         # Print the receipt twice, without the copy info
         app.logger.info(f"Printing receipt for order #{order_data.get('number', 'N/A')}")
-        print_success1 = print_kitchen_ticket(order_data)
+        print_success1 = print_kitchen_ticket(order_data, copy_info="Kitchen")
         time.sleep(1)  # Small delay for the printer queue
-        print_success2 = print_kitchen_ticket(order_data)
+        print_success2 = print_kitchen_ticket(order_data, copy_info="Customer")
 
         if print_success1 and print_success2:
             printed_status = 'Yes (2 copies)'
@@ -286,7 +312,6 @@ def log_order_to_csv(order_data):
             printed_status = 'Partial (1 copy)'
         else:
             printed_status = 'No'
-        # --- MODIFICATION END ---
 
         existing_rows = []
         file_exists = os.path.exists(filename)
@@ -434,7 +459,6 @@ def reprint_order_endpoint():
 
         app.logger.info(f"Attempting to reprint order #{order_number_to_reprint}")
 
-        # --- MODIFICATION START ---
         # Reprint the receipt twice, with a simple "Reprint" header
         reprint_success1 = print_kitchen_ticket(reprint_order_data, 
                                                copy_info="Reprint", 
@@ -445,7 +469,6 @@ def reprint_order_endpoint():
                                                original_timestamp_str=original_timestamp)
         
         reprint_success = reprint_success1 and reprint_success2
-        # --- MODIFICATION END ---
         
         if reprint_success:
             return jsonify({"status": "success", "message": f"Order #{order_number_to_reprint} REPRINTED successfully (2 copies)."}), 200
